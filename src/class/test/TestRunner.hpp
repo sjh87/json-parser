@@ -1,0 +1,106 @@
+#ifndef TEST_RUNNER_H
+#define TEST_RUNNER_H
+
+#define COLOR_RED "\033[1;31m"
+#define COLOR_GREEN "\033[1;32m"
+#define COLOR_YELLOW "\033[1;33m"
+#define RESET_COLOR "\033[0m"
+
+#include <functional>
+#include <iostream>
+#include <queue>
+#include <string>
+#include <variant>
+
+namespace Test {
+    struct TestCase {
+        std::string message;
+        std::function<bool()> function{nullptr};
+        bool onlyThis{false};
+    };
+
+    struct TestGroup {
+        std::queue<TestCase> queue{};
+        bool isolate{false};
+
+        void add(const TestCase& tc) {
+            if (tc.onlyThis)
+                isolate = true;
+
+            queue.push(tc);
+        }
+    };
+
+    class TestRunner {
+        std::queue<TestCase> queue;
+        size_t failedCount;
+        size_t passedCount;
+        bool isolate;
+
+    public:
+        TestRunner() : failedCount(0), passedCount(0), isolate(false) {}
+
+        void add(TestGroup& tg) {
+            while (!tg.queue.empty()) {
+                auto tc = tg.queue.front();
+                tg.queue.pop();
+
+                if (isolate && !tc.onlyThis) {
+                    continue;
+                }
+
+                queue.push(tc);
+            }
+        }
+
+        void add(const TestCase& tc) {
+            if (tc.onlyThis)
+                isolate = true;
+
+            queue.push(tc);
+        }
+
+        void run() {
+            while(!queue.empty()) {
+                auto tc = queue.front();
+                queue.pop();
+
+                if (!tc.function) {
+                    std::cout <<
+                    COLOR_YELLOW <<
+                    "-------------------\n" <<
+                    tc.message << '\n'      <<
+                    "-------------------"   <<
+                    RESET_COLOR << std::endl;
+                    continue;
+                }
+
+                if (isolate && !tc.onlyThis) {
+                    continue;
+                }
+
+                bool result = tc.function();
+                result ? passedCount++ : failedCount++;
+
+                std::cout <<
+                    (result ? COLOR_GREEN : COLOR_RED)
+                    << (result ? "Passed: " : "Failed: ")
+                    << tc.message
+                    << RESET_COLOR
+                    << std::endl;
+            }
+
+            std::cout   <<
+            '\n'        <<
+            COLOR_YELLOW <<
+            "-------------------\n" <<
+            "Results\n" <<
+            "-------------------\n" <<
+            COLOR_GREEN << "Passed: " << passedCount << "; " <<
+            COLOR_RED   << "Failed: " << failedCount <<
+            RESET_COLOR << '\n' << std::endl;
+        }
+    };
+};
+
+#endif // TEST_RUNNER_H
