@@ -15,7 +15,7 @@ namespace JSON {
     };
 
     class ValueNodeBase {
-        const Type type;
+        const Type type; // so callers know how to cast getValue()'s returned pointer
         void *value;
 
     public:
