@@ -11,7 +11,8 @@
 namespace JSON {
     enum class Type {
         Empty,
-        Number
+        Null,
+        Number,
     };
 
     class ValueNodeBase {
