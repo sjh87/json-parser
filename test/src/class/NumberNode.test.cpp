@@ -15,5 +15,23 @@ namespace NumberNodeTests {
 
             return true;
         }});
+
+        tests.add({ "JSON::NumberNode::getValue() returns pointer to double = 0 when default constructor used", [](){
+            const auto instance = JSON::NumberNode();
+            if (*(static_cast<double*>(instance.getValue())) != 0) {
+                return false;
+            }
+
+            return true;
+        }});
+
+        tests.add({ "JSON::NumberNode::getValue() returns pointer to double = 69 when constructor used to set value", [](){
+            const auto instance = JSON::NumberNode(69);
+            if (*(static_cast<double*>(instance.getValue())) != 69) {
+                return false;
+            }
+
+            return true;
+        }});
     }
 }

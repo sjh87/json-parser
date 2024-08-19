@@ -16,16 +16,16 @@ namespace JSON {
 
     class ValueNodeBase {
         const Type type;
-        std::nullptr_t value;
+        void *value;
 
     public:
-        ValueNodeBase() : type(Type::Empty) {}
+        ValueNodeBase() : type(Type::Empty), value(nullptr) {}
 
         virtual Type getType() const {
             return type;
         }
 
-        virtual std::nullptr_t getValue() const {
+        virtual void* getValue() const {
             return value;
         };
     };
