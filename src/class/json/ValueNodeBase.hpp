@@ -10,9 +10,10 @@
 
 namespace JSON {
     enum class Type {
+        Boolean,
         Empty,
         Null,
-        Number,
+        Number
     };
 
     class ValueNodeBase {
