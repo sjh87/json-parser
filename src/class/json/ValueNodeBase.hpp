@@ -13,7 +13,8 @@ namespace JSON {
         Boolean,
         Empty,
         Null,
-        Number
+        Number,
+        String
     };
 
     class ValueNodeBase {

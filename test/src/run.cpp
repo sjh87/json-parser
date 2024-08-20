@@ -2,6 +2,7 @@
 #include "class/BooleanNode.test.hpp"
 #include "class/NullNode.test.hpp"
 #include "class/NumberNode.test.hpp"
+#include "class/StringNode.test.hpp"
 
 int main(void) {
     Test::TestRunner tr = Test::TestRunner();
@@ -17,6 +18,9 @@ int main(void) {
 
     NumberNodeTests::init();
     tr.add(NumberNodeTests::tests);
+
+    StringNodeTests::init();
+    tr.add(StringNodeTests::tests);
 
     tr.run();
 }

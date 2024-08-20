@@ -13,6 +13,7 @@ build:
 	${SRC_DIR}/class/BooleanNode.test.cpp \
 	${SRC_DIR}/class/NullNode.test.cpp \
 	${SRC_DIR}/class/NumberNode.test.cpp \
+	${SRC_DIR}/class/StringNode.test.cpp \
 	${SRC_DIR}/class/ValueNodeBase.test.cpp \
 	${SRC_DIR}/run.cpp \
 	$^ $(DEBUG_FLAGS) \
