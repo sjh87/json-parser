@@ -7,7 +7,7 @@ namespace NullNodeTests {
     void init() {
         tests.add({ "JSON::NullNode class tests" });
 
-        tests.add({ "JSON::NullNode::getType() returns Type::NullNode enum value", [](){
+        tests.add({ "JSON::NullNode::getType() returns Type::Null enum value", [](){
             const auto instance = JSON::NullNode();
             if (instance.getType() != JSON::Type::Null) {
                 return false;

@@ -7,7 +7,7 @@ namespace NumberNodeTests {
     void init() {
         tests.add({ "JSON::NumberNode class tests" });
 
-        tests.add({ "JSON::NumberNode::getType() returns Type::NumberNode enum value", [](){
+        tests.add({ "JSON::NumberNode::getType() returns Type::Number enum value", [](){
             const auto instance = JSON::NumberNode(0);
             if (instance.getType() != JSON::Type::Number) {
                 return false;
