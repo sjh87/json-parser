@@ -7,7 +7,7 @@ namespace BooleanNodeTests {
     void init() {
         tests.add({ "JSON::BooleanNode class tests" });
 
-        tests.add({ "JSON::BooleanNode::getType() returns Type::BooleanNode enum value", [](){
+        tests.add({ "JSON::BooleanNode::getType() returns Type::Boolean enum value", [](){
             const auto instance = JSON::BooleanNode(false);
             if (instance.getType() != JSON::Type::Boolean) {
                 return false;
