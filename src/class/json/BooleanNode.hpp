@@ -1,15 +1,15 @@
-#ifndef NUMBER_NODE_H
-#define NUMBER_NODE_H
+#ifndef BOOLEAN_NODE_H
+#define BOOLEAN_NODE_H
 
 #include "ValueNodeBase.hpp"
 
 namespace JSON {
-    class NumberNode : public ValueNodeBase {
+    class BooleanNode : public ValueNodeBase {
         const Type type;
-        const std::unique_ptr<double> value;
+        const std::unique_ptr<bool> value;
 
     public:
-        NumberNode(double n) : type(Type::Number), value(std::make_unique<double>(n)) {}
+        BooleanNode(bool n) : type(Type::Boolean), value(std::make_unique<bool>(n)) {}
 
         Type getType() const override {
             return type;
@@ -21,4 +21,4 @@ namespace JSON {
     };
 }
 
-#endif // NUMBER_NODE_H
+#endif // BOOLEAN_NODE_H
