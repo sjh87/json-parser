@@ -17,7 +17,7 @@ jobs:
         sudo apt-get install -y g++
 
     - name: Run Makefile
-      working-directory: tests
+      working-directory: ../tests
       run: |
         make build
         make run
