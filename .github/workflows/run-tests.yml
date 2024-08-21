@@ -29,9 +29,9 @@ jobs:
       if: always()
       run: |
         if [ '${{ steps.makefile.outcome }}' == 'success' ]; then
-          echo "\033[1;32mTests passed :-)\033[0m"
+          echo -e "\033[1;32mTests passed :-)\033[0m"
           exit 0
         else
-          echo "\033[1;31mTests failed :-(\033[0m"
+          echo -e "\033[1;31mTests failed :-(\033[0m"
           exit 1
         fi
