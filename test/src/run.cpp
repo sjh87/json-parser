@@ -22,5 +22,5 @@ int main(void) {
     StringNodeTests::init();
     tr.add(StringNodeTests::tests);
 
-    tr.run();
+    return !tr.run();
 }

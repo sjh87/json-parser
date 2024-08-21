@@ -60,7 +60,7 @@ namespace Test {
             queue.push(tc);
         }
 
-        void run() {
+        bool run() {
             while(!queue.empty()) {
                 auto tc = queue.front();
                 queue.pop();
@@ -99,6 +99,8 @@ namespace Test {
             COLOR_GREEN << "Passed: " << passedCount << "; " <<
             COLOR_RED   << "Failed: " << failedCount <<
             RESET_COLOR << '\n' << std::endl;
+
+            return failedCount == 0;
         }
     };
 };
