@@ -23,7 +23,7 @@ jobs:
       continue-on-error: false
       id: makefile
 
-    - name: Check Result
+    - name: Report Unit Tests Result
       run: |
         if [ '${{ steps.makefile.outcome }}' == 'success' ]; then
           echo "Tests passed :-)"
