@@ -29,7 +29,7 @@ namespace StringNodeTests {
             return true;
         }});
 
-        tests.add({ "JSON::StringNode::getValue() moves string contents from given std::string object to self on construction", [](){
+        tests.add({ "JSON::StringNode constructor moves string contents from given std::string object to self", [](){
             const char* message = "potato pancakes";
             auto v = std::string(message);
 
