@@ -41,13 +41,20 @@ namespace Test {
         TestRunner() : failedCount(0), passedCount(0), isolate(false) {}
 
         void add(TestGroup& tg) {
+            if (tg.queue.size() < 2 && !(tg.queue.front().function)) {
+                return;
+            }
+
+            if (tg.isolate) {
+                isolate = true;
+            }
+
             while (!tg.queue.empty()) {
                 auto tc = tg.queue.front();
                 tg.queue.pop();
 
-                if (isolate && !tc.onlyThis) {
-                    continue;
-                }
+                if (tg.isolate && !(tc.function))
+                    tc.onlyThis = true;
 
                 queue.push(tc);
             }
@@ -65,6 +72,10 @@ namespace Test {
                 auto tc = queue.front();
                 queue.pop();
 
+                if (isolate && !tc.onlyThis) {
+                    continue;
+                }
+
                 if (!tc.function) {
                     std::cout <<
                     COLOR_YELLOW <<
@@ -72,10 +83,6 @@ namespace Test {
                     tc.message << '\n'      <<
                     "-------------------"   <<
                     RESET_COLOR << std::endl;
-                    continue;
-                }
-
-                if (isolate && !tc.onlyThis) {
                     continue;
                 }
 
@@ -90,11 +97,11 @@ namespace Test {
                     << std::endl;
             }
 
-            std::cout   <<
-            '\n'        <<
-            COLOR_YELLOW <<
+            std::cout               <<
+            '\n'                    <<
+            COLOR_YELLOW            <<
             "-------------------\n" <<
-            "Results\n" <<
+            "Results\n"             <<
             "-------------------\n" <<
             COLOR_GREEN << "Passed: " << passedCount << "; " <<
             COLOR_RED   << "Failed: " << failedCount <<

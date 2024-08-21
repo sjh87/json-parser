@@ -1,4 +1,5 @@
 #include "class/ValueNodeBase.test.hpp"
+#include "class/ArrayNode.test.hpp"
 #include "class/BooleanNode.test.hpp"
 #include "class/NullNode.test.hpp"
 #include "class/NumberNode.test.hpp"
@@ -9,6 +10,9 @@ int main(void) {
     
     ValueNodeBaseTests::init();
     tr.add(ValueNodeBaseTests::tests);
+
+    ArrayNodeTests::init();
+    tr.add(ArrayNodeTests::tests);
 
     BooleanNodeTests::init();
     tr.add(BooleanNodeTests::tests);

@@ -10,6 +10,7 @@
 
 namespace JSON {
     enum class Type {
+        Array,
         Boolean,
         Empty,
         Null,
