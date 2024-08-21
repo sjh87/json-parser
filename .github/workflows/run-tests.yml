@@ -24,12 +24,12 @@ jobs:
       continue-on-error: false
       id: makefile
 
-    - name: Check Makefile result
-      run: |
-        if [ ${{ steps.makefile.outcome }} == 'success' ]; then
-          echo "Tests passed :-)"
-          exit 0
-        else
-          echo "Tests failed :-("
-          exit 1
-        fi
+    # - name: Check Result
+    #   run: |
+    #     if [ ${{ steps.makefile.outcome }} == 'success' ]; then
+    #       echo "Tests passed :-)"
+    #       exit 0
+    #     else
+    #       echo "Tests failed :-("
+    #       exit 1
+    #     fi
