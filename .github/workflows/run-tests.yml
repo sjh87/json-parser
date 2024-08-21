@@ -17,8 +17,8 @@ jobs:
         sudo apt-get install -y g++
 
     - name: Run Makefile
+      working-directory: ./tests
       run: |
-        cd tests
         make build
         make run
       continue-on-error: false
