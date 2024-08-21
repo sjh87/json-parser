@@ -8,7 +8,7 @@ run: build
 	./${BUILD_DIR}/run
 
 build:
-	g++ \
+	mkdir -p build && g++ \
 	-std=c++17 -Wall -Wextra -Wpedantic -Werror \
 	${SRC_DIR}/class/BooleanNode.test.cpp \
 	${SRC_DIR}/class/NullNode.test.cpp \

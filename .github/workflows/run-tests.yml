@@ -4,29 +4,31 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  checks: write
+  contents: read
+
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install dependencies
+    - name: Install test dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y g++
 
-    - name: Run Makefile
-      working-directory: ../tests
-      run: |
-        make build
-        make run
-      continue-on-error: false
+    - name: Run tests
+      working-directory: test
+      run: make
       id: makefile
 
-    - name: Check Makefile result
+    - name: Report test results
+      if: always()
       run: |
-        if [ ${{ steps.makefile.outcome }} == 'success' ]; then
+        if [ '${{ steps.makefile.outcome }}' == 'success' ]; then
           echo "Tests passed :-)"
           exit 0
         else
