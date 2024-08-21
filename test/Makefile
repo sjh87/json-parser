@@ -1,6 +1,6 @@
 .PHONY: run build
 
-DEBUG_FLAGS := $(shell [[ -n "$(DEBUG)" ]] && echo "-gdwarf-2 -g3 ")
+DEBUG_FLAGS := $(sh [[ -n "$(DEBUG)" ]] && echo "-gdwarf-2 -g3 ")
 SRC_DIR := ./src
 BUILD_DIR := ./build
 
@@ -14,6 +14,7 @@ build:
 	${SRC_DIR}/class/BooleanNode.test.cpp \
 	${SRC_DIR}/class/NullNode.test.cpp \
 	${SRC_DIR}/class/NumberNode.test.cpp \
+	${SRC_DIR}/class/ObjectNode.test.cpp \
 	${SRC_DIR}/class/StringNode.test.cpp \
 	${SRC_DIR}/class/ValueNodeBase.test.cpp \
 	${SRC_DIR}/run.cpp \
