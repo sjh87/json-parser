@@ -19,17 +19,16 @@ jobs:
     - name: Run Makefile
       working-directory: test
       run: |
-        make build
-        make run
+        make
       continue-on-error: false
       id: makefile
 
-    # - name: Check Result
-    #   run: |
-    #     if [ ${{ steps.makefile.outcome }} == 'success' ]; then
-    #       echo "Tests passed :-)"
-    #       exit 0
-    #     else
-    #       echo "Tests failed :-("
-    #       exit 1
-    #     fi
+    - name: Check Result
+      run: |
+        if [ ${{ steps.makefile.outcome }} == 'success' ]; then
+          echo "Tests passed :-)"
+          exit 0
+        else
+          echo "Tests failed :-("
+          exit 1
+        fi
