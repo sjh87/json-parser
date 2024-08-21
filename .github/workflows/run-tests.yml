@@ -11,19 +11,18 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: install_test_deps
+    - name: Install test dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y g++
 
-    - name: run_tests
+    - name: Run tests
       working-directory: test
-      run: |
-        make
-      continue-on-error: false
+      run: make
       id: makefile
 
-    - name: report_tests_result
+    - name: Report test results
+      if: always()
       run: |
         if [ '${{ steps.makefile.outcome }}' == 'success' ]; then
           echo "Tests passed :-)"
