@@ -1,6 +1,6 @@
 .PHONY: run build
 
-DEBUG_FLAGS := $(shell [[ -n "$(DEBUG)" ]] && echo "-gdwarf-2 -g3 ")
+DEBUG_FLAGS := $(sh [[ -n "$(DEBUG)" ]] && echo "-gdwarf-2 -g3 ")
 SRC_DIR := ./src
 BUILD_DIR := ./build
 
