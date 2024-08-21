@@ -17,6 +17,10 @@ namespace JSON {
             return type;
         }
 
+        // may want to overload this to take an unsigned int x and return a
+        // pointer to the value y at x, but that's a nice-to-have feature and I
+        // want to keep the interface across ValueNode derivatives the same for
+        // now
         void* getValue() const override {
             return value.get();
         }

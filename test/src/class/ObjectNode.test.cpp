@@ -30,13 +30,13 @@ namespace ObjectNodeTests {
             return true;
         }});
 
-        tests.add({ "ObjectNode::insert() takes ownership of the ValueNode pointed to by a provided unique_ptr", [](){
+        tests.add({ "ObjectNode::insert() effectively moves key and value pairs into its inner storage", [](){
             auto instance = JSON::ObjectNode();
-            const char* rudeKey = "BLAH BLAH BLAH WHO CARES";
-            auto stringNodePtr = std::make_unique<JSON::StringNode>("");
+            std::string rudeKey("BLAH BLAH BLAH WHO CARES");
+            auto stringNodePtr = std::make_unique<JSON::StringNode>("beef");
 
-            instance.insert(rudeKey, std::move(stringNodePtr));
-            if (stringNodePtr) {
+            instance.insert(std::move(rudeKey), std::move(stringNodePtr));
+            if (stringNodePtr || !rudeKey.empty()) { // both should have been cannibalized
                 return false;
             }
 
