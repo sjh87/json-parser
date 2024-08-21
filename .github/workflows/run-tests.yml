@@ -22,16 +22,16 @@ jobs:
 
     - name: Run tests
       working-directory: test
-      run: make
+      run: make -s
       id: makefile
 
     - name: Report test results
       if: always()
       run: |
         if [ '${{ steps.makefile.outcome }}' == 'success' ]; then
-          echo "Tests passed :-)"
+          echo -e "\033[1;32mTests passed :-)\033[0m"
           exit 0
         else
-          echo "Tests failed :-("
+          echo -e "\033[1;31mTests failed :-(\033[0m"
           exit 1
         fi
