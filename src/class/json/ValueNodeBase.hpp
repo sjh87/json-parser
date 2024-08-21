@@ -15,6 +15,7 @@ namespace JSON {
         Empty,
         Null,
         Number,
+        Object,
         String
     };
 

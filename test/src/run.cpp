@@ -3,6 +3,7 @@
 #include "class/BooleanNode.test.hpp"
 #include "class/NullNode.test.hpp"
 #include "class/NumberNode.test.hpp"
+#include "class/ObjectNode.test.hpp"
 #include "class/StringNode.test.hpp"
 
 int main(void) {
@@ -22,6 +23,9 @@ int main(void) {
 
     NumberNodeTests::init();
     tr.add(NumberNodeTests::tests);
+
+    ObjectNodeTests::init();
+    tr.add(ObjectNodeTests::tests);
 
     StringNodeTests::init();
     tr.add(StringNodeTests::tests);

@@ -5,8 +5,9 @@
 
 namespace JSON {
     class ArrayNode : public ValueNodeBase {
-        const Type type;
         using StorageType = std::vector<std::unique_ptr<ValueNodeBase>>;
+
+        const Type type;
         const std::unique_ptr<StorageType> value;
 
     public:
