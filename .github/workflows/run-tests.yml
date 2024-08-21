@@ -22,7 +22,7 @@ jobs:
 
     - name: Run tests
       working-directory: test
-      run: make
+      run: make -s
       id: makefile
 
     - name: Report test results
