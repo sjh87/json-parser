@@ -25,7 +25,7 @@ jobs:
 
     - name: Check Result
       run: |
-        if [ ${{ steps.makefile.outcome }} == 'success' ]; then
+        if [ '${{ steps.makefile.outcome }}' == 'success' ]; then
           echo "Tests passed :-)"
           exit 0
         else
