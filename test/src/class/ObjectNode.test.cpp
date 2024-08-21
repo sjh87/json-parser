@@ -41,6 +41,6 @@ namespace ObjectNodeTests {
             }
 
             return true;
-        }, true});
+        }});
     }
 }
