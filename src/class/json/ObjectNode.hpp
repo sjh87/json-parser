@@ -5,7 +5,7 @@
 
 namespace JSON {
     class ObjectNode : public ValueNodeBase {
-        using StorageType = std::unordered_map<std::string, std::unique_ptr<ValueNodeBase>>;
+        using StorageType = std::unordered_map<const char*, std::unique_ptr<ValueNodeBase>>;
 
         const Type type;
         const std::unique_ptr<StorageType> value;
@@ -17,13 +17,13 @@ namespace JSON {
             return type;
         }
 
-        // void* getValue() const override {
-        //     return value.get();
-        // }
+        void* getValue() const override {
+            return value.get();
+        }
 
-        // void insert(std::unique_ptr<ValueNodeBase>&& up) {
-        //     value->push_back(std::move(up));
-        // }
+        void insert(const char* keyPtr, std::unique_ptr<ValueNodeBase>&& valuePtr) {
+            value->insert(std::make_pair(keyPtr, std::move(valuePtr)));
+        }
     };
 }
 
