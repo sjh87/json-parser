@@ -10,6 +10,7 @@ run: build
 build:
 	mkdir -p build && g++ \
 	-std=c++17 -Wall -Wextra -Wpedantic -Werror \
+	${SRC_DIR}/class/ArrayNode.test.cpp \
 	${SRC_DIR}/class/BooleanNode.test.cpp \
 	${SRC_DIR}/class/NullNode.test.cpp \
 	${SRC_DIR}/class/NumberNode.test.cpp \
