@@ -1,4 +1,3 @@
-#include "../../../src/class/json/NumberNode.hpp"
 #include "NumberNode.test.hpp"
 
 namespace NumberNodeTests {

@@ -1,5 +1,3 @@
-#include "../../../src/class/json/JSON.hpp"
-#include "../../../src/class/json/NumberNode.hpp"
 #include "JSON.test.hpp"
 
 namespace JSONTests {

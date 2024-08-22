@@ -1,5 +1,3 @@
-#include "../../../src/class/json/ObjectNode.hpp"
-#include "../../../src/class/json/StringNode.hpp"
 #include "ObjectNode.test.hpp"
 
 namespace ObjectNodeTests {

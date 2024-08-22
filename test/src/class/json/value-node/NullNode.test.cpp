@@ -1,4 +1,3 @@
-#include "../../../src/class/json/NullNode.hpp"
 #include "NullNode.test.hpp"
 
 namespace NullNodeTests {
