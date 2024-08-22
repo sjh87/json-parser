@@ -1,6 +1,7 @@
 #include "class/ValueNodeBase.test.hpp"
 #include "class/ArrayNode.test.hpp"
 #include "class/BooleanNode.test.hpp"
+#include "class/JSON.test.hpp"
 #include "class/NullNode.test.hpp"
 #include "class/NumberNode.test.hpp"
 #include "class/ObjectNode.test.hpp"
@@ -17,6 +18,9 @@ int main(void) {
 
     BooleanNodeTests::init();
     tr.add(BooleanNodeTests::tests);
+
+    JSONTests::init();
+    tr.add(JSONTests::tests);
 
     NullNodeTests::init();
     tr.add(NullNodeTests::tests);
