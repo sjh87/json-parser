@@ -15,9 +15,9 @@ namespace JSON {
             return value->getType();
         }
 
-        // void* getValue() const {
-        //     return value.get();
-        // }
+        void* getValue() const {
+            return value.get();
+        }
     };
 }
 
