@@ -5,18 +5,18 @@
 
 namespace JSON {
     class JSON {
-        const std::unique_ptr<ValueNodeBase> value;
+        const std::unique_ptr<ValueNodeBase> head;
 
     public:
         JSON() = delete;
-        JSON(std::unique_ptr<ValueNodeBase>&& up) : value(std::move(up)) {}
+        JSON(std::unique_ptr<ValueNodeBase>&& up) : head(std::move(up)) {}
 
         Type getType() const {
-            return value->getType();
+            return head->getType();
         }
 
-        void* getValue() const {
-            return value.get();
+        void* get() const {
+            return head.get();
         }
     };
 }

@@ -28,12 +28,12 @@ namespace JSONTests {
             return true;
         }});
 
-        tests.add({ "JSON::JSON::getValue() returns a pointer to its top-most value node", [](){
+        tests.add({ "JSON::JSON::get() returns a pointer to its top-most value node", [](){
             const double numbo = 7;
             auto numberNodePtr = std::make_unique<JSON::NumberNode>(numbo);
             auto json = JSON::JSON(std::move(numberNodePtr));
 
-            auto ptr = static_cast<JSON::NumberNode*>(json.getValue());
+            auto ptr = static_cast<JSON::NumberNode*>(json.get());
             if (!ptr)
                 return false;
             
