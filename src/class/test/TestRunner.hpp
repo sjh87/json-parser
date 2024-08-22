@@ -13,6 +13,7 @@
 #include <variant>
 
 namespace Test {
+    constexpr bool ISOLATE_TEST = true;
     struct TestCase {
         std::string message;
         std::function<bool()> function{nullptr};
