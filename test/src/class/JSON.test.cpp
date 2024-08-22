@@ -16,6 +16,16 @@ namespace JSONTests {
                 return false;
 
             return true;
-        }});        
+        }});
+
+        tests.add({ "JSON::JSON::getType() returns the Type enum value of its top-most value node", [](){
+            auto numberNodePtr = std::make_unique<JSON::NumberNode>(7);
+            auto json = JSON::JSON(std::move(numberNodePtr));
+
+            if (json.getType() != JSON::Type::Number)
+                return false;
+
+            return true;
+        }});
     }
 }
