@@ -1,4 +1,3 @@
-#include "../../../src/class/json/BooleanNode.hpp"
 #include "BooleanNode.test.hpp"
 
 namespace BooleanNodeTests {

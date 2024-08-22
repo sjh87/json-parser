@@ -1,5 +1,3 @@
-#include "../../../src/class/json/ArrayNode.hpp"
-#include "../../../src/class/json/StringNode.hpp"
 #include "ArrayNode.test.hpp"
 
 namespace ArrayNodeTests {

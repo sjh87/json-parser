@@ -1,4 +1,3 @@
-#include "../../../src/class/json/ValueNodeBase.hpp"
 #include "ValueNodeBase.test.hpp"
 
 namespace ValueNodeBaseTests {

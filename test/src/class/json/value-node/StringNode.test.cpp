@@ -1,4 +1,3 @@
-#include "../../../src/class/json/StringNode.hpp"
 #include "StringNode.test.hpp"
 
 namespace StringNodeTests {
