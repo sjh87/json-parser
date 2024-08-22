@@ -1,11 +1,11 @@
-#include "class/ValueNodeBase.test.hpp"
-#include "class/ArrayNode.test.hpp"
-#include "class/BooleanNode.test.hpp"
-#include "class/JSON.test.hpp"
-#include "class/NullNode.test.hpp"
-#include "class/NumberNode.test.hpp"
-#include "class/ObjectNode.test.hpp"
-#include "class/StringNode.test.hpp"
+#include "class/json/value-node/ValueNodeBase.test.hpp"
+#include "class/json/value-node/ArrayNode.test.hpp"
+#include "class/json/value-node/BooleanNode.test.hpp"
+#include "class/json/JSON.test.hpp"
+#include "class/json/value-node/NullNode.test.hpp"
+#include "class/json/value-node/NumberNode.test.hpp"
+#include "class/json/value-node/ObjectNode.test.hpp"
+#include "class/json/value-node/StringNode.test.hpp"
 
 int main(void) {
     Test::TestRunner tr = Test::TestRunner();

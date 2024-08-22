@@ -1,7 +1,7 @@
 #ifndef JSON_H
 #define JSON_H
 
-#include "ValueNodeBase.hpp"
+#include "value-node/ValueNodeBase.hpp"
 
 namespace JSON {
     class JSON {
