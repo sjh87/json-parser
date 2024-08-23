@@ -14,8 +14,11 @@ namespace JSON {
     class InvalidJSONError : public std::exception {
         const std::string message;
 
+    public:
         InvalidJSONError(std::string m) : message(m) {} 
     };
+
+    double parseNumber(std::istream&);
 
     struct StackElement {
         std::pair<unsigned, unsigned> loc{ 0, 0 };

@@ -50,5 +50,33 @@ namespace ParserTests {
 
             return true;
         }});
+
+        tests.add({ "JSON::Parser::parse() parses a '0' JSON payload", [](){
+            auto parser = JSON::Parser();
+
+            std::stringstream numboStream("0");
+
+            auto json = parser.parse(numboStream);
+
+            auto numboNode = static_cast<JSON::NumberNode*>(json.get());
+            auto value = static_cast<double*>(numboNode->getValue());
+            if (*value != 0)
+                return false;
+
+            return true;
+        }});
+
+        tests.add({ "JSON::Parser::parse() throws on a '00' JSON payload", [](){
+            auto parser = JSON::Parser();
+
+            std::stringstream numboStream("00");
+
+            try {
+                parser.parse(numboStream);
+                return false;
+            } catch (JSON::InvalidJSONError& e) {
+                return true;
+            }
+        }});
     }
 }
