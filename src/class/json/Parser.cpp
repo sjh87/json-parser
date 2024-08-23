@@ -21,6 +21,7 @@ namespace JSON {
     }
 
     JSON Parser::parse(std::istream& stream) {
+        // so the switch doesn't cause passing over of variable declaration
         double tempDouble{0};
         std::unique_ptr<ValueNodeBase> currentNode;
 
@@ -40,17 +41,17 @@ namespace JSON {
                 case '9':
                     tempDouble = parseNumber(stream, byte);
                     currentNode = std::make_unique<NumberNode>(tempDouble);
-                    majorStack.push(StackElement{
+                    majorStack.emplace(std::move(StackElement{
                         nullptr,
                         std::make_unique<NumberNode>(tempDouble)
-                    });
+                    }));
                     break;
                 default:
                     throw std::runtime_error("'"+ std::string(1, byte) +"' is not valid JSON");
             }
         }
 
-        if (majorStack.size() != 1)
+        if (majorStack.size() != 1) // should end up with one element on stack
             throw std::runtime_error("Malformed JSON");
 
         return JSON(std::move(majorStack.top().value));
