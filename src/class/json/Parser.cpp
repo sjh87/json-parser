@@ -23,12 +23,12 @@ namespace JSON {
         while (stream.get(byte)) {
             switch (byte) {
                 default:
-                    if (std::isdigit(byte)) {
+                    if (byte == '-' || std::isdigit(byte)) {
                         double v = parseNumber(stream, byte);
                         if (!head) {
                             head = std::move(std::make_unique<NumberNode>(v));
+                            continue;
                         }
-                        continue;
                     }
             }
         }
