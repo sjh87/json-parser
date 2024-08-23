@@ -6,6 +6,7 @@
 #include "class/json/value-node/NumberNode.test.hpp"
 #include "class/json/value-node/ObjectNode.test.hpp"
 #include "class/json/value-node/StringNode.test.hpp"
+#include "class/json/Parser.test.hpp"
 
 int main(void) {
     Test::TestRunner tr = Test::TestRunner();
@@ -30,6 +31,9 @@ int main(void) {
 
     ObjectNodeTests::init();
     tr.add(ObjectNodeTests::tests);
+
+    ParserTests::init();
+    tr.add(ParserTests::tests);
 
     StringNodeTests::init();
     tr.add(StringNodeTests::tests);
