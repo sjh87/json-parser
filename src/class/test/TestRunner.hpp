@@ -10,7 +10,6 @@
 #include <iostream>
 #include <queue>
 #include <string>
-#include <variant>
 
 namespace Test {
     constexpr bool ISOLATE_TEST = true;
