@@ -14,14 +14,15 @@ namespace JSON {
         }
 
         if (buffer[0] == '0' && !(buffer[1] == '.' || !buffer[1])) {
-            throw InvalidJSONError("are you nuts?");
+            throw std::runtime_error("0-leading numbers are not valid JSON");
         }
 
         return std::atof(buffer.data());
     }
 
     JSON Parser::parse(std::istream& stream) {
-        std::unique_ptr<ValueNodeBase> head;
+        double tempDouble{0};
+        std::unique_ptr<ValueNodeBase> currentNode;
 
         char byte;
         while (stream.get(byte)) {
@@ -37,14 +38,21 @@ namespace JSON {
                 case '7':
                 case '8':
                 case '9':
-                    double v = parseNumber(stream, byte);
-                    if (!head) {
-                        head = std::move(std::make_unique<NumberNode>(v));
-                        continue;
-                    }
+                    tempDouble = parseNumber(stream, byte);
+                    currentNode = std::make_unique<NumberNode>(tempDouble);
+                    majorStack.push(StackElement{
+                        nullptr,
+                        std::make_unique<NumberNode>(tempDouble)
+                    });
+                    break;
+                default:
+                    throw std::runtime_error("'"+ std::string(1, byte) +"' is not valid JSON");
             }
         }
 
-        return JSON(std::move(head));
+        if (majorStack.size() != 1)
+            throw std::runtime_error("Malformed JSON");
+
+        return JSON(std::move(majorStack.top().value));
     }
 }

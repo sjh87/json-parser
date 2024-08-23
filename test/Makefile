@@ -1,6 +1,7 @@
 .PHONY: run build
 
-DEBUG_FLAGS := $(sh [[ -n "$(DEBUG)" ]] && echo "-gdwarf-2 -g3 ")
+DEBUG_FLAGS := $(shell if [ -n "$(DEBUG)" ]; then echo "-gdwarf-2 -g3"; fi)
+
 SRC := ../src
 TEST_SRC := ./src
 BUILD_DIR := ./build
@@ -10,6 +11,7 @@ run: build
 
 build:
 	mkdir -p build && g++ \
+	$(DEBUG_FLAGS) \
 	-std=c++17 -Wall -Wextra -Wpedantic -Werror \
 	${TEST_SRC}/class/json/value-node/ArrayNode.test.cpp \
 	${TEST_SRC}/class/json/value-node/BooleanNode.test.cpp \
@@ -22,5 +24,7 @@ build:
 	${SRC}/class/json/Parser.cpp \
 	${TEST_SRC}/class/json/Parser.test.cpp \
 	${TEST_SRC}/run.cpp \
-	$^ $(DEBUG_FLAGS) \
 	-o ${BUILD_DIR}/run
+
+debug:
+	@$(MAKE) DEBUG=1

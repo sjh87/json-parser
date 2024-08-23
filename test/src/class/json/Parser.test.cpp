@@ -113,14 +113,29 @@ namespace ParserTests {
 
         tests.add({ "JSON::Parser::parse() throws on a '00' JSON payload", [](){
             auto parser = JSON::Parser();
+            const std::string expectedWhat = "0-leading numbers are not valid JSON";
 
             std::stringstream numboStream("00");
 
             try {
                 parser.parse(numboStream);
                 return false;
-            } catch (JSON::InvalidJSONError& e) {
-                return true;
+            } catch (std::runtime_error& e) {
+                return e.what() == expectedWhat;
+            }
+        }});
+
+        tests.add({ "JSON::Parser::parse() throws on a '.1' JSON payload", [](){
+            auto parser = JSON::Parser();
+            const std::string expectedWhat = "'.' is not valid JSON";
+
+            std::stringstream numboStream(".1");
+
+            try {
+                parser.parse(numboStream);
+                return false;
+            } catch (std::runtime_error& e) {
+                return e.what() == expectedWhat;
             }
         }});
     }
