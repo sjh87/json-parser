@@ -34,7 +34,9 @@ namespace JSON {
             return std::make_unique<NullNode>();
         } else if (buffer.front() == '"' && buffer.back() == '"') {
             buffer.erase(buffer.begin());
-            buffer.erase(buffer.end() - 1);
+            buffer.erase(buffer.end() - 1); // iterators behave like pointers.. which is dangerous, but very helpful
+
+            // reassign buffer storage to new StringNode, clearing buffer and saving a copy operation (I think)
             return std::make_unique<StringNode>(std::move(buffer));
         }
 
