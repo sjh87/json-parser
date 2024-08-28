@@ -224,6 +224,37 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "throws on 9]", [](){
+            std::stringstream sstream("9]");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& e) {
+                if (e.what() != std::string("unexpected ']' encountered"))
+                    return false;
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on [9", [](){
+            std::stringstream sstream("[9");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& e) {
+                if (e.what() != std::string("malformed JSON")) {
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
         tests.add({ "correctly parses [9, 10]", [](){
             std::stringstream sstream("[9, 10]");
             auto parser = JSON::Parser();

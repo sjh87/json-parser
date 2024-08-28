@@ -147,12 +147,14 @@ namespace JSON {
             if (stream.eof()) {
                 trimValueString(parsingBuffer);
 
-                if (stack.size() == 1 && !head) {
+                if (stack.size() == 1 && parsingBuffer.empty()) {
                     head = std::move(stack.top().second);
                     stack.pop();
-                } else {
+                } else if (!parsingBuffer.empty() && stack.empty()) {
                     validateParserEndState(stack, head, parsingBuffer);
                     head = std::move(parsePrimitive(parsingBuffer));
+                } else {
+                    break; // check after the while loop catch it
                 }
 
 
@@ -303,7 +305,7 @@ namespace JSON {
 
         // should end up with an empty stack, empty buffer and a non-null pointer
         if (!(stack.empty() && head && parsingBuffer.empty()))
-            throw std::runtime_error("Malformed JSON");
+            throw std::runtime_error("malformed JSON");
 
         return JSON(std::move(head));
     }
