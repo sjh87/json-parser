@@ -4,14 +4,14 @@
 #include "ValueNodeBase.hpp"
 
 namespace JSON {
+    using ArrayStorageType = std::vector<std::unique_ptr<ValueNodeBase>>;
     class ArrayNode : public ValueNodeBase {
-        using StorageType = std::vector<std::unique_ptr<ValueNodeBase>>;
 
         const Type type;
-        const std::unique_ptr<StorageType> value;
+        const std::unique_ptr<ArrayStorageType> value;
 
     public:
-        ArrayNode() : type(Type::Array), value(std::make_unique<StorageType>()) {}
+        ArrayNode() : type(Type::Array), value(std::make_unique<ArrayStorageType>()) {}
 
         Type getType() const override {
             return type;

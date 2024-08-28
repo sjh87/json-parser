@@ -7,27 +7,23 @@
 #include <stack>
 #include <string>
 #include "JSON.hpp"
-#include "value-node/ValueNodeBase.hpp"
+#include "value-node/ArrayNode.hpp"
+#include "value-node/BooleanNode.hpp"
+#include "value-node/NullNode.hpp"
 #include "value-node/NumberNode.hpp"
+#include "value-node/ObjectNode.hpp"
+#include "value-node/StringNode.hpp"
 
 namespace JSON {
-    double parseNumber(std::istream&);
-
-    struct StackElement {
-        // std::pair<unsigned, unsigned> loc{ 0, 0 };
-        std::unique_ptr<std::string> key{ nullptr };
-        std::unique_ptr<ValueNodeBase> value{ nullptr };
-    };
+    using StackType = std::stack<std::pair<std::string, std::unique_ptr<ValueNodeBase>>>;
 
     class Parser {
-        std::stack<StackElement> majorStack;
-        std::stack<StackElement> minorStack;
+        StackType stack;
 
     public:
-        Parser() : majorStack(), minorStack() {};
+        Parser() : stack() {};
 
-        // takes an istream& and returns a JSON instance, or throws
-        // InvalidJSONError
+        // takes an istream& and returns a JSON instance, or throws runtime_error
         JSON parse(std::istream& stream);
     };
 }

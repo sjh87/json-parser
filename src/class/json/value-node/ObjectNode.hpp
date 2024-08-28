@@ -4,14 +4,14 @@
 #include "ValueNodeBase.hpp"
 
 namespace JSON {
+    using ObjectStorageType = std::unordered_map<std::string, std::unique_ptr<ValueNodeBase>>;
     class ObjectNode : public ValueNodeBase {
-        using StorageType = std::unordered_map<std::string, std::unique_ptr<ValueNodeBase>>;
 
         const Type type;
-        const std::unique_ptr<StorageType> value;
+        const std::unique_ptr<ObjectStorageType> value;
 
     public:
-        ObjectNode() : type(Type::Object), value(std::make_unique<StorageType>()) {}
+        ObjectNode() : type(Type::Object), value(std::make_unique<ObjectStorageType>()) {}
 
         Type getType() const override {
             return type;
