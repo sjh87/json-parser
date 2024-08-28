@@ -18,17 +18,6 @@ namespace JSON {
         return isPositive ? d : -1 * d;
     }
 
-    // static void trimValueString(std::string& vs) {
-    //     if (vs.empty())
-    //         return;
-
-    //     while (std::isspace(vs.front()))
-    //         vs.erase(vs.begin());
-
-    //     while (std::isspace(vs.back()))
-    //         vs.erase(vs.end() - 1);
-    // }
-
     static bool appearsToBeANumber(const std::string& candidate) {
         return (
             std::isdigit(candidate.front()) || candidate.front() == '-'
@@ -52,24 +41,19 @@ namespace JSON {
         throw std::runtime_error(buffer + " is invalid JSON");
     }
 
-    static void collapse(StackType& stack, const char &c) {
-        StackType temp;
-        Type type{Type::Empty};
+    static void collapse(StackType& stack, const Type type) {
+        if (type != Type::Array && type != Type::Object)
+            throw std::runtime_error("JSON::collapse called with non-container Type enum");
 
-        if (c == ']') {
-            type = Type::Array;
-        } else if (c == '}') {
-            type = Type::Object;
-        } else
-            std::runtime_error("NONONNONONO BAD BAD BAD");
+        StackType temp;
 
         while (!stack.empty() && stack.top().second->getType() != type) {
             temp.push(std::move(stack.top()));
             stack.pop();
         }
 
-        if (stack.top().second->getType() != type)
-            throw std::runtime_error("NONONONONONO BAD BAD BAD");
+        if (stack.empty())
+            throw std::runtime_error("did not find beginning of container when collapsing");
         
         if (type == Type::Object) {
             auto objectPtr = static_cast<ObjectNode*>(stack.top().second.get());
@@ -210,7 +194,7 @@ namespace JSON {
                     parsingBuffer.clear();
                 }
 
-                collapse(stack, ']');
+                collapse(stack, Type::Array);
                 break;
             case '{':
                 if (canBeginObjectOrArray(stack)) {
@@ -239,7 +223,7 @@ namespace JSON {
                     parsingBuffer.clear();
                 }
 
-                collapse(stack, '}');
+                collapse(stack, Type::Object);
                 break;
             case ':':
                 if (stack.empty() || head || stack.top().first.empty() || stack.top().second) {
