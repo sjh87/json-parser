@@ -138,7 +138,7 @@ namespace JSON {
                     validateParserEndState(stack, head, parsingBuffer);
                     head = std::move(parsePrimitive(parsingBuffer));
                 } else {
-                    break; // check after the while loop catch it
+                    break; // let the check after the while loop catch it
                 }
 
 
@@ -279,8 +279,12 @@ namespace JSON {
                         parsingBuffer.clear();
                     }
                 }
-
                 break;
+            default:
+                if (std::isspace(byte)) // locale-specific, I have read ¯\_(ツ)_/¯
+                    break;
+
+                throw std::runtime_error("illegal byte '" + std::string(byte, 1) + "' encountered");
             }
         }
 
