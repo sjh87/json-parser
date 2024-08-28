@@ -203,6 +203,52 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "throws on {\"amount\": 3, \"category\": 2", [](){
+            std::stringstream sstream(R"({"amount": 3, "category": 2)");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("malformed JSON"))
+                    return false;
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on \"amount\": 3, \"category\": 2}", [](){
+            std::stringstream sstream(R"("amount": 3, "category": 2})");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("':' encountered outside of object"))
+                    return false;
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {\"amount\": 3 \"category\": 2}", [](){
+            std::stringstream sstream(R"({"amount": 3 "category": 2})");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                std::cout << error.what();
+                if (error.what() != std::string("unexpectd double-quote (\")"))
+                    return false;
+            }
+
+            return true;
+        }});
+
         tests.add({ "JSON::Parser::parse(): Array" });
         tests.add({ "correctly parses [9]", [](){
             std::stringstream sstream("[9]");

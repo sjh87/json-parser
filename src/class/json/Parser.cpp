@@ -18,16 +18,16 @@ namespace JSON {
         return isPositive ? d : -1 * d;
     }
 
-    static void trimValueString(std::string& vs) {
-        if (vs.empty())
-            return;
+    // static void trimValueString(std::string& vs) {
+    //     if (vs.empty())
+    //         return;
 
-        while (std::isspace(vs.front()))
-            vs.erase(vs.begin());
+    //     while (std::isspace(vs.front()))
+    //         vs.erase(vs.begin());
 
-        while (std::isspace(vs.back()))
-            vs.erase(vs.end() - 1);
-    }
+    //     while (std::isspace(vs.back()))
+    //         vs.erase(vs.end() - 1);
+    // }
 
     static bool appearsToBeANumber(const std::string& candidate) {
         return (
@@ -145,8 +145,6 @@ namespace JSON {
             stream.get(byte);
 
             if (stream.eof()) {
-                trimValueString(parsingBuffer);
-
                 if (stack.size() == 1 && parsingBuffer.empty()) {
                     head = std::move(stack.top().second);
                     stack.pop();
@@ -170,8 +168,6 @@ namespace JSON {
                 if (stack.empty()) {
                     throw std::runtime_error("unexpected ',' encountered");
                 }
-
-                trimValueString(parsingBuffer);
 
                 if (!parsingBuffer.empty()) {
                     node = std::move(parsePrimitive(parsingBuffer));
@@ -204,7 +200,6 @@ namespace JSON {
                     throw std::runtime_error("unexpected ']' encountered");
                 }
 
-                trimValueString(parsingBuffer);
                 if (
                     !parsingBuffer.empty()
                     && stack.top().second
@@ -238,7 +233,6 @@ namespace JSON {
                     throw std::runtime_error("unexpected '}' encountered");
                 }
 
-                trimValueString(parsingBuffer);
                 if (!parsingBuffer.empty() && !stack.top().first.empty() && !stack.top().second) {
                     auto ptr = parsePrimitive(parsingBuffer);
                     stack.top().second = std::move(ptr);
@@ -252,7 +246,6 @@ namespace JSON {
                     throw std::runtime_error("':' encountered outside of object");
                 }
                 break;
-            case ' ':
             case '-':
             case '.':
             case '0':
@@ -278,8 +271,10 @@ namespace JSON {
                 parsingBuffer.push_back(byte);
                 break;
             case '"':
-            parsingBuffer.clear();
-            parsingBuffer.push_back('"');
+                if (!parsingBuffer.empty())
+                    throw std::runtime_error("unexpectd double-quote (\")");
+
+                parsingBuffer.push_back('"');
                 while (stream.get(byte)) {
                     parsingBuffer.push_back(byte);
                     if (byte == '"')
