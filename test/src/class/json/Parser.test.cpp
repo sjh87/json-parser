@@ -241,7 +241,6 @@ namespace ParserTests {
                 parser.parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
-                std::cout << error.what();
                 if (error.what() != std::string("unexpectd double-quote (\")"))
                     return false;
             }
