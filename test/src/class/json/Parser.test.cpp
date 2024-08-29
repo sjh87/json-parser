@@ -189,6 +189,26 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "correctly parses {\"name\": \"\"}", [](){
+            std::stringstream sstream(R"({"name": ""})");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
+            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
+            if (value->size() != 1)
+                return false;
+
+            if (value->at("name")->getType() != JSON::Type::String)
+                return false;
+
+            auto receivedNumberPtr = static_cast<std::string*>(value->at("name")->getValue());
+            if (*receivedNumberPtr != "")
+                return false;
+
+            return true;
+        }, Test::ISOLATE_TEST });
+
         tests.add({ "correctly parses {\"numbos\": [1, 2, 3]}", [](){
             std::stringstream sstream(R"({"numbos": [1, 2, 3]})");
             auto parser = JSON::Parser();
