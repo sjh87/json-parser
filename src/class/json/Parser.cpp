@@ -104,12 +104,13 @@ namespace JSON {
     }
 
     static bool expectingKey(const StackType& stack) {
-        return !stack.empty()
-            && (stack.top().second
-                && ((stack.top().second->getType() == Type::Object
-                    || stack.top().first) && stack.top().second->getType() != Type::Array
-                )
-            );  
+        return !stack.empty() // in a container, at least
+            && stack.top().second // not waiting for a value to pair with a key
+            && stack.top().second->getType() != Type::Array // just started an Array in an object
+            && ( // just started an object, or last item was a complete key/v pair
+                stack.top().second->getType() == Type::Object
+                || (stack.top().first && stack.top().second)
+            );
     }
 
     JSON Parser::parse(std::istream& stream) {
