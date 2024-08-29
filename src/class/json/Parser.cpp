@@ -1,46 +1,27 @@
 #include "Parser.hpp"
 
 namespace JSON {
-    static double parseNumber(std::string& buffer) {
-        bool isPositive{true};
-        if (buffer.front() == '-') {
-            isPositive = false;
-            buffer.erase(buffer.begin());
-        }
-
-        if (buffer.front() == '0' && !(buffer[1] == '.' || buffer.size() == 1)) {
-            throw std::runtime_error(buffer + "is invalid JSON");
-        } else if (buffer.front() == '.' || buffer.back() == '.')
-            throw std::runtime_error(buffer + "is invalid JSON");
-
-        double d = std::atof(buffer.data());
-
-        return isPositive ? d : -1 * d;
-    }
-
-    static bool appearsToBeANumber(const std::string& candidate) {
-        return (
-            std::isdigit(candidate.front()) || candidate.front() == '-'
-        ) && std::isdigit(candidate.back());
-    }
+    // stole this and tested it pretty thoroughly; guilty till proven innocent,
+    // like all regex :-D
+    const std::regex numberPattern(R"(^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$)");
 
     static std::unique_ptr<ValueNodeBase> parsePrimitive(std::string& buffer) {
         if (buffer == "true" || buffer == "false") {
             return std::make_unique<BooleanNode>(buffer == "true");
-        } else if (appearsToBeANumber(buffer)) {
-            double d = parseNumber(buffer); // TODO handle exceptions
+        } else if (std::regex_match(buffer, numberPattern)) {
+            double d = std::atof(buffer.data()); // TODO handle exceptions
             return std::make_unique<NumberNode>(d);
         } else if (buffer == "null") {
             return std::make_unique<NullNode>();
         } else if (buffer.front() == '"' && buffer.back() == '"') {
             buffer.erase(buffer.begin());
-            buffer.erase(buffer.end() - 1); // iterators behave like pointers.. which is dangerous, but very helpful
+            buffer.erase(buffer.end() - 1); // iterators behave like pointers.. which is dangerous, but neato
 
             // reassign buffer storage to new StringNode, clearing buffer and saving a copy operation (I think)
             return std::make_unique<StringNode>(std::move(buffer));
         }
 
-        throw std::runtime_error(buffer + " is invalid JSON");
+        throw std::runtime_error("'"+ buffer +"'" + " is invalid JSON");
     }
 
     static void collapse(StackType& stack, const Type type) {
@@ -120,6 +101,15 @@ namespace JSON {
             return true;
 
         return stack.top().second && stack.top().second->getType() == Type::Object;
+    }
+
+    static bool expectingKey(const StackType& stack) {
+        return !stack.empty()
+            && (stack.top().second
+                && ((stack.top().second->getType() == Type::Object
+                    || stack.top().first) && stack.top().second->getType() != Type::Array
+                )
+            );  
     }
 
     JSON Parser::parse(std::istream& stream) {
@@ -266,11 +256,13 @@ namespace JSON {
             case 's':
             case 't':
             case 'u':
+                if (expectingKey(stack))
+                    throw std::runtime_error("unexpected '"+ std::string(1, byte) +"' when key was expected");
                 parsingBuffer.push_back(byte);
                 break;
             case '"':
                 if (!parsingBuffer.empty())
-                    throw std::runtime_error("unexpectd double-quote (\")");
+                    throw std::runtime_error("unexpected double-quote (\")");
 
                 parsingBuffer.push_back('"');
                 while (stream.get(byte)) {
@@ -278,6 +270,9 @@ namespace JSON {
                     if (byte == '"')
                         break;
                 }
+
+                if (stream.eof())
+                    throw (std::runtime_error("string never terminates: " + parsingBuffer));
 
                 if (!stack.empty()) {
                     if (readyForObjectKey(stack)) {
@@ -294,10 +289,8 @@ namespace JSON {
                 }
                 break;
             default:
-                if (std::isspace(byte)) // locale-specific, I have read ¯\_(ツ)_/¯
-                    break;
-
-                throw std::runtime_error("illegal byte '" + std::string(byte, 1) + "' encountered");
+                if (!std::isspace(byte)) // locale-specific, I have read ¯\_(ツ)_/¯
+                    throw std::runtime_error("'" + std::string(1, byte) + "'" + " is invalid in JSON");
             }
         }
 
