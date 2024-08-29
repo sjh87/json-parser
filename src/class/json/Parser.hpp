@@ -1,7 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <algorithm>
 #include <array>
 #include <memory>
 #include <regex>
