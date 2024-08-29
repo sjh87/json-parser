@@ -98,8 +98,37 @@ namespace ParserTests {
             return "pork chop sandwiches" == *value;
         }});
 
+        tests.add({ "correctly parses \"\"", [](){
+            std::stringstream sstream(R"("")");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto stringNode = static_cast<JSON::StringNode*>(json.get());
+            auto value = static_cast<std::string*>(stringNode->getValue());
+            return "" == *value;
+        } });
 
         tests.add({ "JSON::Parser::parse(): Object" });
+        tests.add({ "correctly parses {\"emptyMsg\": \"\"}", [](){
+            std::stringstream sstream(R"({"emptyMsg": ""})");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
+            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
+            if (value->size() != 1)
+                return false;
+
+            if (value->at("emptyMsg")->getType() != JSON::Type::String)
+                return false;
+
+            auto receivedNumberPtr = static_cast<std::string*>(value->at("emptyMsg")->getValue());
+            if (*receivedNumberPtr != "")
+                return false;
+
+            return true;
+        }});
+
         tests.add({ "correctly parses {\"amount\": 3}", [](){
             std::stringstream sstream(R"({"amount": 3})");
             auto parser = JSON::Parser();
@@ -118,7 +147,27 @@ namespace ParserTests {
                 return false;
 
             return true;
-        } });
+        }});
+
+        tests.add({ "correctly parses {\"\": 3}", [](){
+            std::stringstream sstream(R"({"": 3})");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
+            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
+            if (value->size() != 1)
+                return false;
+
+            if (value->at("")->getType() != JSON::Type::Number)
+                return false;
+
+            auto receivedNumberPtr = static_cast<double*>(value->at("")->getValue());
+            if (*receivedNumberPtr != 3)
+                return false;
+
+            return true;
+        }});
 
         tests.add({ "correctly parses {\"name\": \"Big Steve\"}", [](){
             std::stringstream sstream(R"({"name": "Big Steve"})");

@@ -30,11 +30,11 @@ namespace ObjectNodeTests {
 
         tests.add({ "ObjectNode::insert() effectively moves key and value pairs into its inner storage", [](){
             auto instance = JSON::ObjectNode();
-            std::string rudeKey("BLAH BLAH BLAH WHO CARES");
+            auto rudeKey = std::make_unique<std::string>("BLAH BLAH BLAH WHO CARES");
             auto stringNodePtr = std::make_unique<JSON::StringNode>("beef");
 
             instance.insert(std::move(rudeKey), std::move(stringNodePtr));
-            if (stringNodePtr || !rudeKey.empty()) { // both should have been cannibalized
+            if (stringNodePtr || !rudeKey->empty()) { // both should have been cannibalized
                 return false;
             }
 

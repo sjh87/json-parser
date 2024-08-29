@@ -24,8 +24,11 @@ namespace JSON {
             return value.get();
         }
 
-        void insert(std::string&& key, std::unique_ptr<ValueNodeBase>&& valuePtr) {
-            value->insert(std::make_pair(std::move(key), std::move(valuePtr)));
+        void insert(std::unique_ptr<std::string>&& key, std::unique_ptr<ValueNodeBase>&& valuePtr) {
+            if (!key)
+                throw std::runtime_error("null pointer provided as key to ObjectNode instance");
+
+            value->insert(std::make_pair(std::move(*key), std::move(valuePtr)));
         }
     };
 }

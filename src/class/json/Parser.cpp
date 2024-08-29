@@ -62,7 +62,7 @@ namespace JSON {
 
             while (!temp.empty()) {
                 auto tempTop = std::move(temp.top());
-                if (tempTop.first.empty())
+                if (!tempTop.first)
                     throw std::runtime_error("empty key encountered while collapsing Object");
                 
                 objectPtr->insert(std::move(tempTop.first), std::move(tempTop.second));
@@ -74,7 +74,7 @@ namespace JSON {
 
             while (!temp.empty()) {
                 auto tempTop = std::move(temp.top());
-                if (!tempTop.first.empty())
+                if (tempTop.first)
                     throw std::runtime_error("non-empty key encountered while collapsing Array");
                 
                 arrayPtr->insert(std::move(tempTop.second));
@@ -101,9 +101,9 @@ namespace JSON {
     static bool canBeginObjectOrArray(const StackType& stack) {
         if (stack.empty()) {
             return true;
-        } else if (stack.top().first.empty() && stack.top().second) {
+        } else if (!stack.top().first && stack.top().second) {
             return true;
-        } else if (!stack.top().first.empty() && !stack.top().second) {
+        } else if (stack.top().first && !stack.top().second) {
             return true;
         } else if (stack.top().second->getType() == Type::Array) {
             return true;
@@ -116,7 +116,7 @@ namespace JSON {
     // if prior stack element has a key and value, or its value is an Object
     // itself, return true
     static bool readyForObjectKey(const StackType &stack) {
-        if (!stack.top().first.empty() && stack.top().second)
+        if (stack.top().first && stack.top().second)
             return true;
 
         return stack.top().second && stack.top().second->getType() == Type::Object;
@@ -160,10 +160,12 @@ namespace JSON {
                     parsingBuffer.clear();
                 }
 
-                if (!stack.top().first.empty() && !stack.top().second) {
+                if (stack.top().first && !stack.top().second) {
                     stack.top().second = std::move(node);
                 } else if (stack.top().second) {
-                    stack.push(std::make_pair("", std::move(node)));
+                    stack.push(std::make_pair(
+                        std::unique_ptr<std::string>(nullptr), std::move(node)
+                    ));
                 }
 
                 break;
@@ -171,13 +173,21 @@ namespace JSON {
                 if (canBeginObjectOrArray(stack)) {
                     node = std::make_unique<ArrayNode>();
                     if (stack.empty()) {
-                        stack.push(std::make_pair("", std::move(node)));
-                    } else if (!stack.top().first.empty()) {
+                        stack.push(std::make_pair(std::move(
+                            std::unique_ptr<std::string>(nullptr)), std::move(node)
+                        ));
+                    } else if (stack.top().first) {
                         stack.top().second = std::move(node);
-                    } else if (stack.top().first.empty()) {
-                        stack.push(std::make_pair("", std::move(node)));
+                    } else if (!stack.top().first) {
+                        stack.push(std::make_pair(
+                            std::move(std::unique_ptr<std::string>(nullptr)),
+                            std::move(node)
+                        ));
                     } else if (stack.top().second->getType() == Type::Array) {
-                        stack.push(std::make_pair("", std::move(node)));
+                        stack.push(std::make_pair(
+                            std::move(std::unique_ptr<std::string>(nullptr)),
+                            std::move(node)
+                        ));
                     }
                 }
                 break;
@@ -189,10 +199,13 @@ namespace JSON {
                 if (
                     !parsingBuffer.empty()
                     && stack.top().second
-                    && (stack.top().second->getType() == Type::Array || stack.top().first.empty())
+                    && (stack.top().second->getType() == Type::Array || !stack.top().first)
                 ) {
                     auto ptr = parsePrimitive(parsingBuffer);
-                    stack.push(std::make_pair("", std::move(ptr)));
+                    stack.push(std::make_pair(
+                        std::move(std::unique_ptr<std::string>(nullptr)),
+                        std::move(ptr)
+                    ));
                     parsingBuffer.clear();
                 }
 
@@ -201,14 +214,13 @@ namespace JSON {
             case '{':
                 if (canBeginObjectOrArray(stack)) {
                     node = std::make_unique<ObjectNode>();
-                    if (stack.empty()) {
-                        stack.push(std::make_pair("", std::move(node)));
-                    } else if (!stack.top().first.empty()) {
+                    if (stack.empty() || !stack.top().first || stack.top().second->getType() == Type::Array) {
+                        stack.push(std::make_pair(
+                            std::move(std::unique_ptr<std::string>(nullptr)),
+                            std::move(node)
+                        ));
+                    } else if (stack.top().first) {
                         stack.top().second = std::move(node);
-                    } else if (stack.top().first.empty()) {
-                        stack.push(std::make_pair("", std::move(node)));
-                    } else if (stack.top().second->getType() == Type::Array) {
-                        stack.push(std::make_pair("", std::move(node)));
                     }
                 } else {
                     throw std::runtime_error("unexpected '{' encountered");
@@ -219,7 +231,7 @@ namespace JSON {
                     throw std::runtime_error("unexpected '}' encountered");
                 }
 
-                if (!parsingBuffer.empty() && !stack.top().first.empty() && !stack.top().second) {
+                if (!parsingBuffer.empty() && stack.top().first && !stack.top().second) {
                     auto ptr = parsePrimitive(parsingBuffer);
                     stack.top().second = std::move(ptr);
                     parsingBuffer.clear();
@@ -228,7 +240,7 @@ namespace JSON {
                 collapse(stack, Type::Object);
                 break;
             case ':':
-                if (stack.empty() || head || stack.top().first.empty() || stack.top().second) {
+                if (stack.empty() || head || !stack.top().first || stack.top().second) {
                     throw std::runtime_error("':' encountered outside of object");
                 }
                 break;
@@ -271,9 +283,10 @@ namespace JSON {
                     if (readyForObjectKey(stack)) {
                         parsingBuffer.erase(parsingBuffer.begin());
                         parsingBuffer.erase(parsingBuffer.end() - 1);
+                        auto key = std::make_unique<std::string>(std::move(parsingBuffer));
                         stack.push(
                             std::make_pair(
-                                parsingBuffer,
+                                std::move(key),
                                 std::move(std::unique_ptr<ValueNodeBase>{}))
                         );
                         parsingBuffer.clear();
