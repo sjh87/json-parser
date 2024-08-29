@@ -120,6 +120,7 @@ namespace ParserTests {
             auto json = parser.parse(sstream);
             auto stringNode = static_cast<JSON::StringNode*>(json.get());
             auto value = static_cast<std::string*>(stringNode->getValue());
+
             return "" == *value;
         } });
 
@@ -138,10 +139,26 @@ namespace ParserTests {
                 return false;
 
             auto receivedNumberPtr = static_cast<std::string*>(value->at("emptyMsg")->getValue());
-            if (*receivedNumberPtr != "")
+
+            return *receivedNumberPtr == "";
+        }});
+
+        tests.add({ "correctly parses {\"blah\": 4, \"blah\": 5}", [](){
+            std::stringstream sstream(R"({"blah": 4, "blah": 5})");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
+            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
+            if (value->size() != 1)
                 return false;
 
-            return true;
+            if (value->at("blah")->getType() != JSON::Type::Number)
+                return false;
+
+            auto receivedNumberPtr = static_cast<double*>(value->at("blah")->getValue());
+
+            return *receivedNumberPtr == 5;
         }});
 
         tests.add({ "correctly parses {\"amount\": 3}", [](){
@@ -158,10 +175,8 @@ namespace ParserTests {
                 return false;
 
             auto receivedNumberPtr = static_cast<double*>(value->at("amount")->getValue());
-            if (*receivedNumberPtr != 3)
-                return false;
 
-            return true;
+            return *receivedNumberPtr == 3;
         }});
 
         tests.add({ "correctly parses {\"\": 3}", [](){
@@ -178,10 +193,8 @@ namespace ParserTests {
                 return false;
 
             auto receivedNumberPtr = static_cast<double*>(value->at("")->getValue());
-            if (*receivedNumberPtr != 3)
-                return false;
 
-            return true;
+            return *receivedNumberPtr == 3;
         }});
 
         tests.add({ "correctly parses {\"name\": \"Big Steve\"}", [](){
@@ -198,10 +211,8 @@ namespace ParserTests {
                 return false;
 
             auto receivedNumberPtr = static_cast<std::string*>(value->at("name")->getValue());
-            if (*receivedNumberPtr != "Big Steve")
-                return false;
 
-            return true;
+            return *receivedNumberPtr == "Big Steve";
         }});
 
         tests.add({ "correctly parses {\"name\": \"\"}", [](){

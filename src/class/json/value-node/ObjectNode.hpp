@@ -30,6 +30,14 @@ namespace JSON {
             else if (!value)
                 throw std::runtime_error("null pointer provided as value to ObjectNode::insert");
 
+            auto pos = value->find(*key);
+            if (pos != value->end()) {
+                // weird JSON spec says that the last-occuring value for a given
+                // key is "the" value for said key
+                pos->second = std::move(valuePtr);
+                return;
+            }
+
             value->insert(std::make_pair(std::move(*key), std::move(valuePtr)));
         }
     };
