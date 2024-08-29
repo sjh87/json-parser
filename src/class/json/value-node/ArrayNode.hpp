@@ -26,6 +26,9 @@ namespace JSON {
         }
 
         void insert(std::unique_ptr<ValueNodeBase>&& up) {
+            if (!up)
+                throw std::runtime_error("null pointer provided to ArrayNode::insert");
+
             value->push_back(std::move(up));
         }
     };

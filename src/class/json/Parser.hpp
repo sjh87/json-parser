@@ -3,6 +3,7 @@
 
 #include <array>
 #include <memory>
+#include <regex>
 #include <sstream>
 #include <stack>
 #include <string>
@@ -15,7 +16,9 @@
 #include "value-node/StringNode.hpp"
 
 namespace JSON {
-    using StackType = std::stack<std::pair<std::string, std::unique_ptr<ValueNodeBase>>>;
+    using StackType = std::stack<
+        std::pair<std::unique_ptr<std::string>, std::unique_ptr<ValueNodeBase>>
+    >;
 
     class Parser {
         StackType stack;
