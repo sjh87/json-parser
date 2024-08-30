@@ -334,6 +334,91 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "throws on {\"amount\": }", [](){
+            std::stringstream sstream("{\"amount\": }");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("unexpected '}' encountered")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {: 3}", [](){
+            std::stringstream sstream("{: 3}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("expected key, got ':'")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {\"thing\": 2, : 3}", [](){
+            std::stringstream sstream("{\"thing\": 2, : 3}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("expected key, got ':'")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {\"thing\": 2, 3}", [](){
+            std::stringstream sstream("{\"thing\": 2, 3}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("unexpected '3' when key was expected")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {{}}", [](){
+            std::stringstream sstream("{{}}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("null key encountered while collapsing Object")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
         tests.add({ "throws on {amount\": 3}", [](){
             std::stringstream sstream("{amount\": 3}");
             auto parser = JSON::Parser();
@@ -553,6 +638,27 @@ namespace ParserTests {
 
                 return static_cast<JSON::ArrayStorageType*>(v->getValue())->empty();
             });
+
+            return true;
+        }});
+
+        tests.add({ "correctly parses [[[]]]", [](){
+            std::stringstream sstream(R"([[[]]])");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
+            auto received = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
+            if (received->size() != 1)
+                return false;
+
+            auto nested1 = static_cast<JSON::ArrayStorageType*>(received->front()->getValue());
+            if (nested1->size() != 1)
+                return false;
+
+            auto nested2 = static_cast<JSON::ArrayStorageType*>(nested1->front()->getValue());
+            if (nested2->size() != 0)
+                return false;
 
             return true;
         }});

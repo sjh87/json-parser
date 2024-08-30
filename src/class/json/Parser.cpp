@@ -65,7 +65,7 @@ namespace JSON {
             while (!temp.empty()) {
                 auto tempTop = std::move(temp.top());
                 if (!tempTop.key)
-                    throw std::runtime_error("empty key encountered while collapsing Object");
+                    throw std::runtime_error("null key encountered while collapsing Object");
                 
                 objectPtr->insert(std::move(tempTop.key), std::move(tempTop.value));
 
@@ -241,7 +241,7 @@ namespace JSON {
 
                 break;
             case '}':
-                if (stack.empty() || (justSawComma && parsingBuffer.empty())) {
+                if (stack.empty() || ((justSawComma || expectingValue()) && parsingBuffer.empty())) {
                     throw std::runtime_error("unexpected '}' encountered");
                 }
 
@@ -254,7 +254,9 @@ namespace JSON {
                 collapseContainer(Type::Object);
                 break;
             case ':':
-                if (!expectingValue()) {
+                if (expectingKey()) {
+                    throw std::runtime_error("expected key, got ':'");
+                } else if (!expectingValue()) {
                     throw std::runtime_error("':' encountered outside of object");
                 }
                 break;
