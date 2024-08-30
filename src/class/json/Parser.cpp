@@ -31,6 +31,9 @@ namespace JSON {
         std::stack<StackElement> temp;
 
         while (!stack.empty() && stack.top().value->getType() != type) {
+            if (stack.top().open)
+                throw std::runtime_error("cannot collapse open container into another");
+
             temp.push(std::move(stack.top()));
             stack.pop();
         }
@@ -63,6 +66,8 @@ namespace JSON {
                 temp.pop();
             }
         }
+
+        stack.top().open = false;
     }
 
     void Parser::validateParserEndState(
@@ -85,9 +90,10 @@ namespace JSON {
             return true;
         } else if (stack.top().key && !stack.top().value) {
             return true;
-        } else if (stack.top().value && stack.top().value->getType() == Type::Array) {
+        } else if (stack.top().value->getType() == Type::Array) {
             return true;
-        }
+        } else if (stack.top().value->getType() == Type::Object && !stack.top().open)
+            return false;
 
         return false;
     }
@@ -165,19 +171,23 @@ namespace JSON {
                     if (stack.empty()) {
                         stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
-                            std::move(node)
+                            std::move(node),
+                            true
                     });
                     } else if (stack.top().key) {
                         stack.top().value = std::move(node);
+                        stack.top().open = true;
                     } else if (!stack.top().key) {
                         stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
-                            std::move(node)
+                            std::move(node),
+                            true
                         });
                     } else if (stack.top().value->getType() == Type::Array) {
                         stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
-                            std::move(node)
+                            std::move(node),
+                            true
                         });
                     }
                 }
@@ -208,10 +218,12 @@ namespace JSON {
                     if (stack.empty() || !stack.top().key || stack.top().value->getType() == Type::Array) {
                         stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
-                            std::move(node)
+                            std::move(node),
+                            true
                         });
                     } else if (stack.top().key) {
                         stack.top().value = std::move(node);
+                        stack.top().open = true;
                     }
                 } else {
                     throw std::runtime_error("unexpected '{' encountered");

@@ -20,6 +20,7 @@ namespace JSON {
         struct StackElement {
             std::unique_ptr<std::string> key;
             std::unique_ptr<ValueNodeBase> value;
+            bool open{ false };
         };
 
         std::stack<StackElement> stack;
