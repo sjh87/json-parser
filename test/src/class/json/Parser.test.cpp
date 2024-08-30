@@ -526,7 +526,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("[, 3]");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("unexpected ',' encountered")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -541,7 +541,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("Why, hello! I am junk. Nice to meet you!");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'W' is invalid in JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -555,7 +555,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("falsy");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'y' is invalid in JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -569,7 +569,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("fal3se");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'fal3se' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -583,7 +583,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("13true");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'13true' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -597,7 +597,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("true13");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'true13' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -611,7 +611,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("nu ll");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'nu ll' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -626,7 +626,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("fa lse");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'fa lse' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -640,7 +640,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("1true3");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'1true3' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
