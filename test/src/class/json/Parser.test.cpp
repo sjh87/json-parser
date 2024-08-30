@@ -498,6 +498,26 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "correctly parses [[], []. []]", [](){
+            std::stringstream sstream(R"([[], [], []])");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
+            auto received = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
+            if (received->size() != 3)
+                return false;
+
+            std::all_of(received->begin(), received->end(), [](std::unique_ptr<JSON::ValueNodeBase>& v){
+                if (v->getType() == JSON::Type::Array)
+                    return false;
+
+                return static_cast<JSON::ObjectStorageType*>(v->getValue())->empty();
+            });
+
+            return true;
+        }});
+
         tests.add({"JSON::Parser::parse(): Junk Values"});
         tests.add({"throws on 'Why, hello! I am junk. Nice to meet you!'", [](){
             try {

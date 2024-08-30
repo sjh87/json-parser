@@ -30,10 +30,7 @@ namespace JSON {
 
         std::stack<StackElement> temp;
 
-        while (!stack.empty() && stack.top().value->getType() != type) {
-            if (stack.top().open)
-                throw std::runtime_error("cannot collapse open container into another");
-
+        while (!stack.empty() && !stack.top().open) {
             temp.push(std::move(stack.top()));
             stack.pop();
         }
@@ -153,6 +150,8 @@ namespace JSON {
                 if (!parsingBuffer.empty()) {
                     node = std::move(parsePrimitive(parsingBuffer));
                     parsingBuffer.clear();
+                } else {
+                    continue;
                 }
 
                 if (stack.top().key && !stack.top().value) {
