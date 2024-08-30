@@ -15,7 +15,7 @@ namespace JSON {
             return std::make_unique<NullNode>();
         } else if (buffer.front() == '"' && buffer.back() == '"') {
             buffer.erase(buffer.begin());
-            buffer.erase(buffer.end() - 1); // iterators behave like pointers.. which is dangerous, but neato
+            buffer.erase(buffer.end() - 1); // iterators behave like pointers?
 
             // reassign buffer storage to new StringNode, clearing buffer and saving a copy operation (I think)
             return std::make_unique<StringNode>(std::move(buffer));
@@ -86,10 +86,9 @@ namespace JSON {
             return true;
         } else if (stack.top().first && !stack.top().second) {
             return true;
-        } else if (stack.top().second->getType() == Type::Array) {
+        } else if (stack.top().second && stack.top().second->getType() == Type::Array) {
             return true;
         }
-
 
         return false;
     }
@@ -153,7 +152,7 @@ namespace JSON {
 
                 if (stack.top().first && !stack.top().second) {
                     stack.top().second = std::move(node);
-                } else if (stack.top().second) {
+                } else if (stack.top().second && stack.top().second->getType() != Type::Object) {
                     stack.push(std::make_pair(
                         std::unique_ptr<std::string>(nullptr), std::move(node)
                     ));
