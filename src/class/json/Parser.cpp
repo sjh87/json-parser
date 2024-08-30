@@ -6,6 +6,10 @@ namespace JSON {
     const std::regex numberPattern(R"(^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$)");
 
     static std::unique_ptr<ValueNodeBase> parsePrimitive(std::string& buffer) {
+        while (std::isspace(buffer.back())) {
+            buffer.erase(buffer.end() - 1);
+        }
+
         if (buffer == "true" || buffer == "false") {
             return std::make_unique<BooleanNode>(buffer == "true");
         } else if (std::regex_match(buffer, numberPattern)) {
@@ -309,6 +313,9 @@ namespace JSON {
             default:
                 if (!std::isspace(byte)) // locale-specific, I have read ¯\_(ツ)_/¯
                     throw std::runtime_error("'" + std::string(1, byte) + "'" + " is invalid in JSON");
+                
+                if (!parsingBuffer.empty())
+                    parsingBuffer.push_back(byte);
             }
         }
 

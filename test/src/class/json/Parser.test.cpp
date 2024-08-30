@@ -18,6 +18,7 @@ std::vector<numberTestRow> numberTestrows{
     { ".", 0, SHOULD_THROW },
     { ".0", 0, SHOULD_THROW },
     { "0.", 0, SHOULD_THROW },
+    { "0 .", 0, SHOULD_THROW },
     { "0.0", 0 },
     { "0.1", 0.1 },
     { "0.1234", 0.1234 },
@@ -39,6 +40,7 @@ std::vector<numberTestRow> numberTestrows{
     { "eE", 0, SHOULD_THROW },
     { "Ee", 0, SHOULD_THROW },
     { "EE", 0, SHOULD_THROW },
+    { "3 3", 0, SHOULD_THROW },
 };
 
 namespace ParserTests {
@@ -596,6 +598,35 @@ namespace ParserTests {
                 return false; // show have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'true13' is invalid JSON")) {
+                    std::cout << "got unexpected error: " << error.what() << std::endl;
+                    return false;
+                }
+            }
+            return true;
+        }});
+
+        tests.add({"throws on 'nu ll'", [](){
+            try {
+                auto ss = std::stringstream("nu ll");
+                JSON::Parser().parse(ss);
+                return false; // show have thrown
+            } catch (std::runtime_error& error) {
+                if (error.what() != std::string("'nu ll' is invalid JSON")) {
+                    std::cout << "got unexpected error: " << error.what() << std::endl;
+                    return false;
+                }
+            }
+            return true;
+        }});
+
+
+        tests.add({"throws on 'fa lse'", [](){
+            try {
+                auto ss = std::stringstream("fa lse");
+                JSON::Parser().parse(ss);
+                return false; // show have thrown
+            } catch (std::runtime_error& error) {
+                if (error.what() != std::string("'fa lse' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
                     return false;
                 }
