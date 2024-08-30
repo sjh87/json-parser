@@ -113,7 +113,7 @@ namespace JSON {
 
     bool Parser::expectingKey() const {
         return !stack.empty()
-            && !stack.top().isOpenArray()
+            && !stack.top().isOpenArray() // could be a key-value pair with an open Array
             && (stack.top().isOpenObject() || stack.top().isKeyValuePair());
     }
 
