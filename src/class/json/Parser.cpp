@@ -24,11 +24,11 @@ namespace JSON {
         throw std::runtime_error("'"+ buffer +"'" + " is invalid JSON");
     }
 
-    static void collapse(StackType& stack, const Type type) {
+    void Parser::collapseContainer(const Type type) {
         if (type != Type::Array && type != Type::Object)
             throw std::runtime_error("JSON::collapse called with non-container Type enum");
 
-        StackType temp;
+        std::stack<StackElement> temp;
 
         while (!stack.empty() && stack.top().value->getType() != type) {
             temp.push(std::move(stack.top()));
@@ -65,8 +65,7 @@ namespace JSON {
         }
     }
 
-    static void validateParserEndState(
-        StackType& stack,
+    void Parser::validateParserEndState(
         std::unique_ptr<ValueNodeBase>& head,
         std::string& parsingBuffer
     ) {
@@ -79,7 +78,7 @@ namespace JSON {
         }
     }
 
-    static bool canBeginObjectOrArray(const StackType& stack) {
+    bool Parser::canBeginObjectOrArray() const {
         if (stack.empty()) {
             return true;
         } else if (!stack.top().key && stack.top().value) {
@@ -95,14 +94,14 @@ namespace JSON {
 
     // if prior stack element has a key and value, or its value is an Object
     // itself, return true
-    static bool readyForObjectKey(const StackType &stack) {
+    bool Parser::readyForObjectKey() const {
         if (stack.top().key && stack.top().value)
             return true;
 
         return stack.top().value && stack.top().value->getType() == Type::Object;
     }
 
-    static bool expectingKey(const StackType& stack) {
+    bool Parser::expectingKey() const {
         return !stack.empty() // in a container, at least
             && stack.top().value // not waiting for a value to pair with a key
             && stack.top().value->getType() != Type::Array // just started an Array in an object
@@ -125,7 +124,7 @@ namespace JSON {
                     head = std::move(stack.top().value);
                     stack.pop();
                 } else if (!parsingBuffer.empty() && stack.empty()) {
-                    validateParserEndState(stack, head, parsingBuffer);
+                    validateParserEndState(head, parsingBuffer);
                     head = std::move(parsePrimitive(parsingBuffer));
                 } else {
                     break; // let the check after the while loop catch it
@@ -161,7 +160,7 @@ namespace JSON {
 
                 break;
             case '[':
-                if (canBeginObjectOrArray(stack)) {
+                if (canBeginObjectOrArray()) {
                     node = std::make_unique<ArrayNode>();
                     if (stack.empty()) {
                         stack.push(StackElement{
@@ -201,10 +200,10 @@ namespace JSON {
                     parsingBuffer.clear();
                 }
 
-                collapse(stack, Type::Array);
+                collapseContainer(Type::Array);
                 break;
             case '{':
-                if (canBeginObjectOrArray(stack)) {
+                if (canBeginObjectOrArray()) {
                     node = std::make_unique<ObjectNode>();
                     if (stack.empty() || !stack.top().key || stack.top().value->getType() == Type::Array) {
                         stack.push(StackElement{
@@ -229,7 +228,7 @@ namespace JSON {
                     parsingBuffer.clear();
                 }
 
-                collapse(stack, Type::Object);
+                collapseContainer(Type::Object);
                 break;
             case ':':
                 if (stack.empty() || head || !stack.top().key || stack.top().value) {
@@ -258,7 +257,7 @@ namespace JSON {
             case 's':
             case 't':
             case 'u':
-                if (expectingKey(stack))
+                if (expectingKey())
                     throw std::runtime_error("unexpected '"+ std::string(1, byte) +"' when key was expected");
                 parsingBuffer.push_back(byte);
                 break;
@@ -277,7 +276,7 @@ namespace JSON {
                     throw (std::runtime_error("string never terminates: " + parsingBuffer));
 
                 if (!stack.empty()) {
-                    if (readyForObjectKey(stack)) {
+                    if (readyForObjectKey()) {
                         parsingBuffer.erase(parsingBuffer.begin());
                         parsingBuffer.erase(parsingBuffer.end() - 1);
                         auto key = std::make_unique<std::string>(std::move(parsingBuffer));
