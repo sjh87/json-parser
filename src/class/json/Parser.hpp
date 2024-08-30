@@ -34,10 +34,6 @@ namespace JSON {
         bool expectingKey() const;
         bool expectingValue() const;
         bool readyForObjectKey() const;
-        void validateParserEndState(
-            std::unique_ptr<ValueNodeBase>&,
-            std::string&
-        );
 
     public:
         Parser() : stack() {};
