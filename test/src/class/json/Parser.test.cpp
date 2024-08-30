@@ -10,6 +10,7 @@ struct numberTestRow {
 };
 
 std::vector<numberTestRow> numberTestrows{
+    { "", 0, SHOULD_THROW },
     { " -.1", 0, SHOULD_THROW },
     { " 9  ", 9 },
     { "-0e12", -0e12 },

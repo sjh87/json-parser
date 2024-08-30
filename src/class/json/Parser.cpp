@@ -88,19 +88,6 @@ namespace JSON {
         stack.top().open = false;
     }
 
-    void Parser::validateParserEndState(
-        std::unique_ptr<ValueNodeBase>& head,
-        std::string& parsingBuffer
-    ) {
-        if (!stack.empty()) {
-            throw std::runtime_error("Parsing error: reached EOF and stack not empty");
-        } else if (!head && parsingBuffer.empty()) {
-            throw std::runtime_error("payload is empty");
-        } else if (head && !parsingBuffer.empty()) {
-            throw std::runtime_error("invalid JSON");
-        }
-    }
-
     bool Parser::canBeginObjectOrArray() const {
         return stack.empty()
             || (!stack.top().key && stack.top().value)
@@ -140,7 +127,6 @@ namespace JSON {
                     head = std::move(stack.top().value);
                     stack.pop();
                 } else if (!parsingBuffer.empty() && stack.empty()) {
-                    validateParserEndState(head, parsingBuffer);
                     head = std::move(parsePrimitive(parsingBuffer));
                 } else {
                     break; // let the check after the while loop catch it
