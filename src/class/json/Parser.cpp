@@ -30,7 +30,7 @@ namespace JSON {
 
         StackType temp;
 
-        while (!stack.empty() && stack.top().second->getType() != type) {
+        while (!stack.empty() && stack.top().value->getType() != type) {
             temp.push(std::move(stack.top()));
             stack.pop();
         }
@@ -39,26 +39,26 @@ namespace JSON {
             throw std::runtime_error("did not find beginning of container when collapsing");
         
         if (type == Type::Object) {
-            auto objectPtr = static_cast<ObjectNode*>(stack.top().second.get());
+            auto objectPtr = static_cast<ObjectNode*>(stack.top().value.get());
 
             while (!temp.empty()) {
                 auto tempTop = std::move(temp.top());
-                if (!tempTop.first)
+                if (!tempTop.key)
                     throw std::runtime_error("empty key encountered while collapsing Object");
                 
-                objectPtr->insert(std::move(tempTop.first), std::move(tempTop.second));
+                objectPtr->insert(std::move(tempTop.key), std::move(tempTop.value));
 
                 temp.pop();
             }
         } else {
-            auto arrayPtr = static_cast<ArrayNode*>(stack.top().second.get());
+            auto arrayPtr = static_cast<ArrayNode*>(stack.top().value.get());
 
             while (!temp.empty()) {
                 auto tempTop = std::move(temp.top());
-                if (tempTop.first)
+                if (tempTop.key)
                     throw std::runtime_error("non-empty key encountered while collapsing Array");
                 
-                arrayPtr->insert(std::move(tempTop.second));
+                arrayPtr->insert(std::move(tempTop.value));
                 
                 temp.pop();
             }
@@ -82,11 +82,11 @@ namespace JSON {
     static bool canBeginObjectOrArray(const StackType& stack) {
         if (stack.empty()) {
             return true;
-        } else if (!stack.top().first && stack.top().second) {
+        } else if (!stack.top().key && stack.top().value) {
             return true;
-        } else if (stack.top().first && !stack.top().second) {
+        } else if (stack.top().key && !stack.top().value) {
             return true;
-        } else if (stack.top().second && stack.top().second->getType() == Type::Array) {
+        } else if (stack.top().value && stack.top().value->getType() == Type::Array) {
             return true;
         }
 
@@ -96,19 +96,19 @@ namespace JSON {
     // if prior stack element has a key and value, or its value is an Object
     // itself, return true
     static bool readyForObjectKey(const StackType &stack) {
-        if (stack.top().first && stack.top().second)
+        if (stack.top().key && stack.top().value)
             return true;
 
-        return stack.top().second && stack.top().second->getType() == Type::Object;
+        return stack.top().value && stack.top().value->getType() == Type::Object;
     }
 
     static bool expectingKey(const StackType& stack) {
         return !stack.empty() // in a container, at least
-            && stack.top().second // not waiting for a value to pair with a key
-            && stack.top().second->getType() != Type::Array // just started an Array in an object
+            && stack.top().value // not waiting for a value to pair with a key
+            && stack.top().value->getType() != Type::Array // just started an Array in an object
             && ( // just started an object, or last item was a complete key/v pair
-                stack.top().second->getType() == Type::Object
-                || (stack.top().first && stack.top().second)
+                stack.top().value->getType() == Type::Object
+                || (stack.top().key && stack.top().value)
             );
     }
 
@@ -122,7 +122,7 @@ namespace JSON {
 
             if (stream.eof()) {
                 if (stack.size() == 1 && parsingBuffer.empty()) {
-                    head = std::move(stack.top().second);
+                    head = std::move(stack.top().value);
                     stack.pop();
                 } else if (!parsingBuffer.empty() && stack.empty()) {
                     validateParserEndState(stack, head, parsingBuffer);
@@ -150,12 +150,13 @@ namespace JSON {
                     parsingBuffer.clear();
                 }
 
-                if (stack.top().first && !stack.top().second) {
-                    stack.top().second = std::move(node);
-                } else if (stack.top().second && stack.top().second->getType() != Type::Object) {
-                    stack.push(std::make_pair(
-                        std::unique_ptr<std::string>(nullptr), std::move(node)
-                    ));
+                if (stack.top().key && !stack.top().value) {
+                    stack.top().value = std::move(node);
+                } else if (stack.top().value && stack.top().value->getType() != Type::Object) {
+                    stack.push(StackElement{
+                        std::unique_ptr<std::string>(nullptr),
+                        std::move(node)
+                    });
                 }
 
                 break;
@@ -163,21 +164,22 @@ namespace JSON {
                 if (canBeginObjectOrArray(stack)) {
                     node = std::make_unique<ArrayNode>();
                     if (stack.empty()) {
-                        stack.push(std::make_pair(std::move(
-                            std::unique_ptr<std::string>(nullptr)), std::move(node)
-                        ));
-                    } else if (stack.top().first) {
-                        stack.top().second = std::move(node);
-                    } else if (!stack.top().first) {
-                        stack.push(std::make_pair(
+                        stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
                             std::move(node)
-                        ));
-                    } else if (stack.top().second->getType() == Type::Array) {
-                        stack.push(std::make_pair(
+                    });
+                    } else if (stack.top().key) {
+                        stack.top().value = std::move(node);
+                    } else if (!stack.top().key) {
+                        stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
                             std::move(node)
-                        ));
+                        });
+                    } else if (stack.top().value->getType() == Type::Array) {
+                        stack.push(StackElement{
+                            std::move(std::unique_ptr<std::string>(nullptr)),
+                            std::move(node)
+                        });
                     }
                 }
                 break;
@@ -188,14 +190,14 @@ namespace JSON {
 
                 if (
                     !parsingBuffer.empty()
-                    && stack.top().second
-                    && (stack.top().second->getType() == Type::Array || !stack.top().first)
+                    && stack.top().value
+                    && (stack.top().value->getType() == Type::Array || !stack.top().key)
                 ) {
                     auto ptr = parsePrimitive(parsingBuffer);
-                    stack.push(std::make_pair(
+                    stack.push(StackElement{
                         std::move(std::unique_ptr<std::string>(nullptr)),
                         std::move(ptr)
-                    ));
+                    });
                     parsingBuffer.clear();
                 }
 
@@ -204,13 +206,13 @@ namespace JSON {
             case '{':
                 if (canBeginObjectOrArray(stack)) {
                     node = std::make_unique<ObjectNode>();
-                    if (stack.empty() || !stack.top().first || stack.top().second->getType() == Type::Array) {
-                        stack.push(std::make_pair(
+                    if (stack.empty() || !stack.top().key || stack.top().value->getType() == Type::Array) {
+                        stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
                             std::move(node)
-                        ));
-                    } else if (stack.top().first) {
-                        stack.top().second = std::move(node);
+                        });
+                    } else if (stack.top().key) {
+                        stack.top().value = std::move(node);
                     }
                 } else {
                     throw std::runtime_error("unexpected '{' encountered");
@@ -221,16 +223,16 @@ namespace JSON {
                     throw std::runtime_error("unexpected '}' encountered");
                 }
 
-                if (!parsingBuffer.empty() && stack.top().first && !stack.top().second) {
+                if (!parsingBuffer.empty() && stack.top().key && !stack.top().value) {
                     auto ptr = parsePrimitive(parsingBuffer);
-                    stack.top().second = std::move(ptr);
+                    stack.top().value = std::move(ptr);
                     parsingBuffer.clear();
                 }
 
                 collapse(stack, Type::Object);
                 break;
             case ':':
-                if (stack.empty() || head || !stack.top().first || stack.top().second) {
+                if (stack.empty() || head || !stack.top().key || stack.top().value) {
                     throw std::runtime_error("':' encountered outside of object");
                 }
                 break;
@@ -279,11 +281,10 @@ namespace JSON {
                         parsingBuffer.erase(parsingBuffer.begin());
                         parsingBuffer.erase(parsingBuffer.end() - 1);
                         auto key = std::make_unique<std::string>(std::move(parsingBuffer));
-                        stack.push(
-                            std::make_pair(
-                                std::move(key),
-                                std::move(std::unique_ptr<ValueNodeBase>{}))
-                        );
+                        stack.push(StackElement{
+                            std::move(key),
+                            std::move(std::unique_ptr<ValueNodeBase>{})
+                        });
                         parsingBuffer.clear();
                     }
                 }

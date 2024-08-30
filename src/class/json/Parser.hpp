@@ -16,9 +16,12 @@
 #include "value-node/StringNode.hpp"
 
 namespace JSON {
-    using StackType = std::stack<
-        std::pair<std::unique_ptr<std::string>, std::unique_ptr<ValueNodeBase>>
-    >;
+    struct StackElement {
+        std::unique_ptr<std::string> key;
+        std::unique_ptr<ValueNodeBase> value;
+    };
+
+    using StackType = std::stack<StackElement>;
 
     class Parser {
         StackType stack;
