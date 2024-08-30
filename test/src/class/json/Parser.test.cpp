@@ -351,6 +351,23 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "throws on {\"amount\": 3,}", [](){
+            std::stringstream sstream("{\"amount\": 3,}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("unexpected '}' encountered")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
         tests.add({ "throws on \"amount\": 3, \"category\": 2}", [](){
             std::stringstream sstream(R"("amount": 3, "category": 2})");
             auto parser = JSON::Parser();
@@ -365,6 +382,24 @@ namespace ParserTests {
 
             return true;
         }});
+
+        tests.add({ "throws on {\"amount\": , \"category\": 2}", [](){
+            std::stringstream sstream(R"({"amount": , "category": 2})");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("unexpected ',' encountered")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
 
         tests.add({ "throws on {\"amount\": 3 \"category\": 2}", [](){
             std::stringstream sstream(R"({"amount": 3 "category": 2})");
@@ -529,6 +564,20 @@ namespace ParserTests {
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("unexpected ',' encountered")) {
+                    std::cout << "got unexpected error: " << error.what() << std::endl;
+                    return false;
+                }
+            }
+            return true;
+        }});
+
+        tests.add({"throws on [3, ]", [](){
+            try {
+                auto ss = std::stringstream("[3, ]");
+                JSON::Parser().parse(ss);
+                return false; // should have thrown
+            } catch (std::runtime_error& error) {
+                if (error.what() != std::string("dangling comma before ']'")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
                     return false;
                 }

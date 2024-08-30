@@ -116,6 +116,7 @@ namespace JSON {
 
     JSON Parser::parse(std::istream& stream) {
         char byte; // TODO figure out UTF-8 parsing, validation
+        bool justSawComma{ false };
         std::string parsingBuffer;
         std::unique_ptr<ValueNodeBase> head;
 
@@ -142,9 +143,11 @@ namespace JSON {
             std::unique_ptr<ValueNodeBase> node;
             switch (byte) {
             case ',':
-                if (stack.empty() || expectingKey() || (stack.top().isOpenArray() && parsingBuffer.empty())) {
+                if (stack.empty() || expectingKey() || ((stack.top().isOpenArray() || expectingValue()) && parsingBuffer.empty())) {
                     throw std::runtime_error("unexpected ',' encountered");
                 }
+
+                justSawComma = true;
 
                 if (!parsingBuffer.empty()) {
                     node = std::move(parsePrimitive(parsingBuffer));
@@ -188,12 +191,17 @@ namespace JSON {
                             true
                         });
                     }
+
+                    justSawComma = false;
                 }
                 break;
             case ']':
                 if (stack.empty()) {
                     throw std::runtime_error("unexpected ']' encountered");
                 }
+
+                if (justSawComma && parsingBuffer.empty())
+                    throw std::runtime_error("dangling comma before ']'");
 
                 if (!parsingBuffer.empty()
                     && stack.top().value
@@ -203,8 +211,12 @@ namespace JSON {
                         std::move(std::unique_ptr<std::string>(nullptr)),
                         std::move(ptr)
                     });
+
+
                     parsingBuffer.clear();
                 }
+
+                justSawComma = false;
 
                 collapseContainer(Type::Array);
                 break;
@@ -224,9 +236,12 @@ namespace JSON {
                 } else {
                     throw std::runtime_error("unexpected '{' encountered");
                 }
+
+                justSawComma = false;
+
                 break;
             case '}':
-                if (stack.empty()) {
+                if (stack.empty() || (justSawComma && parsingBuffer.empty())) {
                     throw std::runtime_error("unexpected '}' encountered");
                 }
 
