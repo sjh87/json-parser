@@ -512,7 +512,7 @@ namespace ParserTests {
                 if (v->getType() == JSON::Type::Array)
                     return false;
 
-                return static_cast<JSON::ObjectStorageType*>(v->getValue())->empty();
+                return static_cast<JSON::ArrayStorageType*>(v->getValue())->empty();
             });
 
             return true;
