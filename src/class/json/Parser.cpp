@@ -25,12 +25,20 @@ namespace JSON {
         throw std::runtime_error("'"+ buffer +"'" + " is invalid JSON");
     }
 
-    bool Parser::StackElement::isArray() const {
-        return this->value && this->value->getType() == Type::Array;
+    bool Parser::StackElement::isKeyValuePair() const {
+        return key && value;
     }
 
-    bool Parser::StackElement::isObject() const {
-        return this->value && this->value->getType() == Type::Object;
+    bool Parser::StackElement::isOpenArray() const {
+        return value
+            && value->getType() == Type::Array
+            && open;
+    }
+
+    bool Parser::StackElement::isOpenObject() const {
+        return value
+            && value->getType() == Type::Object
+            && open;
     }
 
     void Parser::collapseContainer(const Type type) {
@@ -90,37 +98,29 @@ namespace JSON {
     }
 
     bool Parser::canBeginObjectOrArray() const {
-        if (stack.empty()) {
-            return true;
-        } else if (!stack.top().key && stack.top().value) {
-            return true;
-        } else if (stack.top().key && !stack.top().value) {
-            return true;
-        } else if (stack.top().isArray()) {
-            return true;
-        } else if (stack.top().isObject() && !stack.top().open)
-            return false;
-
-        return false;
+        return stack.empty()
+            || (!stack.top().key && stack.top().value)
+            || (expectingValue())
+            || stack.top().isOpenArray()
+            || !stack.top().open;
     }
 
-    // if prior stack element has a key and value, or its value is an Object
-    // itself, return true
+    // top of stack has an open Object or complete key-value pair
     bool Parser::readyForObjectKey() const {
-        if (stack.top().key && stack.top().value)
-            return true;
-
-        return stack.top().isObject();
+        return stack.top().isKeyValuePair()
+            || stack.top().isOpenObject();
     }
 
     bool Parser::expectingKey() const {
-        return !stack.empty() // in a container, at least
-            && stack.top().value // not waiting for a value to pair with a key
-            && !stack.top().isArray() // just started an Array in an object
-            && ( // just started an object, or last item was a complete key/v pair
-                stack.top().isObject()
-                || (stack.top().key && stack.top().value)
-            );
+        return !stack.empty()
+            && !stack.top().isOpenArray()
+            && (stack.top().isOpenObject() || stack.top().isKeyValuePair());
+    }
+
+    bool Parser::expectingValue() const {
+        return !stack.empty()
+            && stack.top().key
+            && !stack.top().value;
     }
 
     JSON Parser::parse(std::istream& stream) {
@@ -132,7 +132,7 @@ namespace JSON {
             stream.get(byte);
 
             if (stream.eof()) {
-                if (stack.size() == 1 && parsingBuffer.empty()) {
+                if (stack.size() == 1 && !stack.top().open && parsingBuffer.empty()) {
                     head = std::move(stack.top().value);
                     stack.pop();
                 } else if (!parsingBuffer.empty() && stack.empty()) {
@@ -142,8 +142,8 @@ namespace JSON {
                     break; // let the check after the while loop catch it
                 }
 
-
                 parsingBuffer.clear();
+
                 break;
             } else if (stream.bad() || stream.fail()) {
                 std::runtime_error("failed to read stream");
@@ -152,7 +152,7 @@ namespace JSON {
             std::unique_ptr<ValueNodeBase> node;
             switch (byte) {
             case ',':
-                if (stack.empty()) {
+                if (stack.empty() || expectingKey()) {
                     throw std::runtime_error("unexpected ',' encountered");
                 }
 
@@ -163,9 +163,9 @@ namespace JSON {
                     continue;
                 }
 
-                if (stack.top().key && !stack.top().value) {
+                if (expectingValue()) {
                     stack.top().value = std::move(node);
-                } else if (stack.top().value && !stack.top().isObject()) {
+                } else if (stack.top().value && !stack.top().isOpenObject()) {
                     stack.push(StackElement{
                         std::unique_ptr<std::string>(nullptr),
                         std::move(node)
@@ -191,7 +191,7 @@ namespace JSON {
                             std::move(node),
                             true
                         });
-                    } else if (stack.top().isArray()) {
+                    } else if (stack.top().isOpenArray()) {
                         stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
                             std::move(node),
@@ -205,11 +205,9 @@ namespace JSON {
                     throw std::runtime_error("unexpected ']' encountered");
                 }
 
-                if (
-                    !parsingBuffer.empty()
+                if (!parsingBuffer.empty()
                     && stack.top().value
-                    && (stack.top().isArray() || !stack.top().key)
-                ) {
+                    && (stack.top().isOpenArray() || !stack.top().key)) {
                     auto ptr = parsePrimitive(parsingBuffer);
                     stack.push(StackElement{
                         std::move(std::unique_ptr<std::string>(nullptr)),
@@ -223,7 +221,7 @@ namespace JSON {
             case '{':
                 if (canBeginObjectOrArray()) {
                     node = std::make_unique<ObjectNode>();
-                    if (stack.empty() || !stack.top().key || stack.top().value->getType() == Type::Array) {
+                    if (stack.empty() || !stack.top().key || stack.top().isOpenArray()) {
                         stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
                             std::move(node),
@@ -242,7 +240,7 @@ namespace JSON {
                     throw std::runtime_error("unexpected '}' encountered");
                 }
 
-                if (!parsingBuffer.empty() && stack.top().key && !stack.top().value) {
+                if (!parsingBuffer.empty() && expectingValue()) {
                     auto ptr = parsePrimitive(parsingBuffer);
                     stack.top().value = std::move(ptr);
                     parsingBuffer.clear();

@@ -22,8 +22,9 @@ namespace JSON {
             std::unique_ptr<ValueNodeBase> value;
             bool open{ false };
 
-            bool isArray() const;
-            bool isObject() const;
+            bool isOpenArray() const;
+            bool isOpenObject() const;
+            bool isKeyValuePair() const;
         };
 
         std::stack<StackElement> stack;
@@ -31,6 +32,7 @@ namespace JSON {
         bool canBeginObjectOrArray() const;
         void collapseContainer(const Type);
         bool expectingKey() const;
+        bool expectingValue() const;
         bool readyForObjectKey() const;
         void validateParserEndState(
             std::unique_ptr<ValueNodeBase>&,
