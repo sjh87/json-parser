@@ -152,7 +152,7 @@ namespace JSON {
             std::unique_ptr<ValueNodeBase> node;
             switch (byte) {
             case ',':
-                if (stack.empty() || expectingKey()) {
+                if (stack.empty() || expectingKey() || (stack.top().isOpenArray() && parsingBuffer.empty())) {
                     throw std::runtime_error("unexpected ',' encountered");
                 }
 
@@ -249,7 +249,7 @@ namespace JSON {
                 collapseContainer(Type::Object);
                 break;
             case ':':
-                if (stack.empty() || head || !stack.top().key || stack.top().value) {
+                if (!expectingValue()) {
                     throw std::runtime_error("':' encountered outside of object");
                 }
                 break;
