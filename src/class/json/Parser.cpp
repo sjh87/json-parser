@@ -10,6 +10,7 @@ namespace JSON {
             return std::make_unique<BooleanNode>(buffer == "true");
         } else if (std::regex_match(buffer, numberPattern)) {
             double d = std::atof(buffer.data()); // TODO handle exceptions
+
             return std::make_unique<NumberNode>(d);
         } else if (buffer == "null") {
             return std::make_unique<NullNode>();
@@ -22,6 +23,14 @@ namespace JSON {
         }
 
         throw std::runtime_error("'"+ buffer +"'" + " is invalid JSON");
+    }
+
+    bool Parser::StackElement::isArray() const {
+        return this->value && this->value->getType() == Type::Array;
+    }
+
+    bool Parser::StackElement::isObject() const {
+        return this->value && this->value->getType() == Type::Object;
     }
 
     void Parser::collapseContainer(const Type type) {
@@ -87,9 +96,9 @@ namespace JSON {
             return true;
         } else if (stack.top().key && !stack.top().value) {
             return true;
-        } else if (stack.top().value->getType() == Type::Array) {
+        } else if (stack.top().isArray()) {
             return true;
-        } else if (stack.top().value->getType() == Type::Object && !stack.top().open)
+        } else if (stack.top().isObject() && !stack.top().open)
             return false;
 
         return false;
@@ -101,15 +110,15 @@ namespace JSON {
         if (stack.top().key && stack.top().value)
             return true;
 
-        return stack.top().value && stack.top().value->getType() == Type::Object;
+        return stack.top().isObject();
     }
 
     bool Parser::expectingKey() const {
         return !stack.empty() // in a container, at least
             && stack.top().value // not waiting for a value to pair with a key
-            && stack.top().value->getType() != Type::Array // just started an Array in an object
+            && !stack.top().isArray() // just started an Array in an object
             && ( // just started an object, or last item was a complete key/v pair
-                stack.top().value->getType() == Type::Object
+                stack.top().isObject()
                 || (stack.top().key && stack.top().value)
             );
     }
@@ -156,7 +165,7 @@ namespace JSON {
 
                 if (stack.top().key && !stack.top().value) {
                     stack.top().value = std::move(node);
-                } else if (stack.top().value && stack.top().value->getType() != Type::Object) {
+                } else if (stack.top().value && !stack.top().isObject()) {
                     stack.push(StackElement{
                         std::unique_ptr<std::string>(nullptr),
                         std::move(node)
@@ -182,7 +191,7 @@ namespace JSON {
                             std::move(node),
                             true
                         });
-                    } else if (stack.top().value->getType() == Type::Array) {
+                    } else if (stack.top().isArray()) {
                         stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
                             std::move(node),
@@ -199,7 +208,7 @@ namespace JSON {
                 if (
                     !parsingBuffer.empty()
                     && stack.top().value
-                    && (stack.top().value->getType() == Type::Array || !stack.top().key)
+                    && (stack.top().isArray() || !stack.top().key)
                 ) {
                     auto ptr = parsePrimitive(parsingBuffer);
                     stack.push(StackElement{

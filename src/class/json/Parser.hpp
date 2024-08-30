@@ -21,6 +21,9 @@ namespace JSON {
             std::unique_ptr<std::string> key;
             std::unique_ptr<ValueNodeBase> value;
             bool open{ false };
+
+            bool isArray() const;
+            bool isObject() const;
         };
 
         std::stack<StackElement> stack;
