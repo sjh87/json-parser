@@ -117,6 +117,33 @@ namespace ParserTests {
             return "pork chop sandwiches" == *value;
         }});
 
+        tests.add({ R"(throws on "\x15")", [](){
+            std::stringstream sstream(R"("\x15")");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+            } catch (std::runtime_error& e) {
+                return e.what() == std::string("naughty escape sequence: \\x");
+            }
+
+            return false; // should have thrown
+        }});
+
+
+        tests.add({ R"(throws on ["Illegal backslash escape: \017"])", [](){
+            std::stringstream sstream(R"(["Illegal backslash escape: \017"])");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+            } catch (std::runtime_error& e) {
+                return e.what() == std::string("naughty escape sequence: \\0");
+            }
+
+            return false; // should have thrown
+        }});
+
         tests.add({ "correctly parses \"\"", [](){
             std::stringstream sstream(R"("")");
             auto parser = JSON::Parser();

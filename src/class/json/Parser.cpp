@@ -1,6 +1,8 @@
 #include "Parser.hpp"
 
 namespace JSON {
+    const std::set<char> permittedEscapes{ '\"', '\\', '\b', '\f', '\n', '\r', '\t' };
+
     // stole this and tested it pretty thoroughly; guilty till proven innocent,
     // like all regex :-D
     const std::regex numberPattern(R"(^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$)");
@@ -296,6 +298,18 @@ namespace JSON {
 
                 parsingBuffer.push_back('"');
                 while (stream.get(byte)) {
+                    if (byte == '\\') {
+                        if (stream.get(byte)) {
+                            if (permittedEscapes.find(byte) == permittedEscapes.end()) {
+                                throw std::runtime_error("naughty escape sequence: \\" + std::string(1, byte));
+                            } else {
+                                parsingBuffer += "\\" + byte;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+
                     parsingBuffer.push_back(byte);
                     if (byte == '"')
                         break;

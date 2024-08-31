@@ -4,6 +4,7 @@
 #include <array>
 #include <memory>
 #include <regex>
+#include <set>
 #include <sstream>
 #include <stack>
 #include <string>
