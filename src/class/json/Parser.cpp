@@ -143,7 +143,11 @@ namespace JSON {
             std::unique_ptr<ValueNodeBase> node;
             switch (byte) {
             case ',':
-                if (stack.empty() || expectingKey() || ((stack.top().isOpenArray() || expectingValue()) && parsingBuffer.empty())) {
+                if (stack.empty()
+                    || expectingKey()
+                    || ((stack.top().isOpenArray()
+                    || expectingValue()) && parsingBuffer.empty())
+                    || (stack.size() == 1 && !stack.top().open)) {
                     throw std::runtime_error("unexpected ',' encountered");
                 }
 

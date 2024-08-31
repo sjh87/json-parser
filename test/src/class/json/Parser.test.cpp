@@ -677,6 +677,20 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({"throws on [1, 2],", [](){
+            try {
+                auto ss = std::stringstream("[1, 2],]");
+                JSON::Parser().parse(ss);
+                return false; // should have thrown
+            } catch (std::runtime_error& error) {
+                if (error.what() != std::string("unexpected ',' encountered")) {
+                    std::cout << "got unexpected error: " << error.what() << std::endl;
+                    return false;
+                }
+            }
+            return true;
+        }});
+
         tests.add({"throws on [3, ]", [](){
             try {
                 auto ss = std::stringstream("[3, ]");
