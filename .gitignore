@@ -1,3 +1,6 @@
 .vscode/
 branch_cleanup.py
 build/
+files
+main.cpp
+Makefile
