@@ -24,6 +24,7 @@ build:
 	${SRC}/class/json/Parser.cpp \
 	${SRC}/class/json/value-node/BooleanNode.cpp \
 	${SRC}/class/json/value-node/NullNode.cpp \
+	${SRC}/class/json/value-node/NumberNode.cpp \
 	${SRC}/class/json/value-node/ValueNodeBase.cpp \
 	${TEST_SRC}/class/json/Parser.test.cpp \
 	${TEST_SRC}/run.cpp \

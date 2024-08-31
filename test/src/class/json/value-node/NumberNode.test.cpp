@@ -32,5 +32,33 @@ namespace NumberNodeTests {
 
             return true;
         }});
+
+        tests.add({ "JSON::NumberNode(22) == JSON::NumberNode(22) is true", [](){
+            auto node1 = JSON::NumberNode(22);
+            auto node2 = JSON::NumberNode(22);
+
+            return node1 == node2;
+        }});
+
+        tests.add({ "JSON::NumberNode(22) == JSON::NumberNode(21) is false", [](){
+            auto node1 = JSON::NumberNode(22);
+            auto node2 = JSON::NumberNode(21);
+
+            return !(node1 == node2);
+        }});
+
+        tests.add({ "JSON::NumberNode(22) != JSON::NumberNode(22) is false", [](){
+            auto node1 = JSON::NumberNode(22);
+            auto node2 = JSON::NumberNode(22);
+
+            return !(node1 != node2);
+        }});
+
+        tests.add({ "JSON::NumberNode(22) != JSON::NumberNode(21) is true", [](){
+            auto node1 = JSON::NumberNode(22);
+            auto node2 = JSON::NumberNode(21);
+
+            return node1 != node2;
+        }});
     }
 }
