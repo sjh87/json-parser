@@ -23,6 +23,7 @@ build:
 	${TEST_SRC}/class/json/JSON.test.cpp \
 	${SRC}/class/json/Parser.cpp \
 	${SRC}/class/json/value-node/BooleanNode.cpp \
+	${SRC}/class/json/value-node/NullNode.cpp \
 	${SRC}/class/json/value-node/ValueNodeBase.cpp \
 	${TEST_SRC}/class/json/Parser.test.cpp \
 	${TEST_SRC}/run.cpp \

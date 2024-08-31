@@ -11,8 +11,8 @@ namespace JSON {
     public:
         BooleanNode(bool n) : type(Type::Boolean), value(std::make_unique<bool>(n)) {}
 
-        virtual bool operator==(const ValueNodeBase& other) const override;
-        // virtual bool operator!=(const ValueNodeBase& other) const override;
+        virtual bool operator==(const ValueNodeBase&) const override;
+        virtual bool operator!=(const ValueNodeBase&) const override;
 
         Type getType() const override {
             return type;

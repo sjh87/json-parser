@@ -11,6 +11,9 @@ namespace JSON {
     public:
         NullNode() : type(Type::Null), value(std::make_unique<std::string>("null")) {}
 
+        bool operator==(const ValueNodeBase& other) const override;
+        bool operator!=(const ValueNodeBase& other) const override;
+
         Type getType() const override {
             return type;
         }

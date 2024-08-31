@@ -46,5 +46,19 @@ namespace BooleanNodeTests {
 
             return !(node1 == node2);
         }});
+
+        tests.add({ "JSON::BooleanNode(true) != JSON::BooleanNode(true) is false", [](){
+            const auto node1 = JSON::BooleanNode(true);
+            const auto node2 = JSON::BooleanNode(true);
+
+            return !(node1 != node2);
+        }});
+
+        tests.add({ "JSON::BooleanNode(true) != JSON::BooleanNode(false) is true", [](){
+            const auto node1 = JSON::BooleanNode(true);
+            const auto node2 = JSON::BooleanNode(false);
+
+            return node1 != node2;
+        }});
     }
 }
