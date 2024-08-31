@@ -44,5 +44,33 @@ namespace StringNodeTests {
 
             return true;
         }});
+
+        tests.add({ "JSON::StringNode(\"Houston, we have a problem\") == JSON::StringNode(\"Houston, we have a problem\") is true", [](){
+            const auto node1 = JSON::StringNode("Houston, we have a problem");
+            const auto node2 = JSON::StringNode("Houston, we have a problem");
+
+            return node1 == node2;
+        }});
+
+        tests.add({ "JSON::StringNode(\"Houston, we have a problem\") == JSON::StringNode(\"Houston, we have a program\") is false", [](){
+            const auto node1 = JSON::StringNode("Houston, we have a problem");
+            const auto node2 = JSON::StringNode("Houston, we have a program");
+
+            return !(node1 == node2);
+        }});
+
+        tests.add({ "JSON::StringNode(\"Houston, we have a problem\") != JSON::StringNode(\"Houston, we have a program\") is true", [](){
+            const auto node1 = JSON::StringNode("Houston, we have a problem");
+            const auto node2 = JSON::StringNode("Houston, we have a program");
+
+            return node1 != node2;
+        }});
+
+        tests.add({ "JSON::StringNode(\"Houston, we have a problem\") != JSON::StringNode(\"Houston, we have a problem\") is false", [](){
+            const auto node1 = JSON::StringNode("Houston, we have a problem");
+            const auto node2 = JSON::StringNode("Houston, we have a problem");
+
+            return !(node1 != node2);
+        }});
     }
 }
