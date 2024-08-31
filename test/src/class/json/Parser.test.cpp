@@ -679,7 +679,7 @@ namespace ParserTests {
 
         tests.add({"throws on [1, 2],", [](){
             try {
-                auto ss = std::stringstream("[1, 2],]");
+                auto ss = std::stringstream("[1, 2],");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
