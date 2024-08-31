@@ -10,10 +10,8 @@ namespace ObjectNodeTests {
 
         tests.add({ "ObjectNode::getType() returns Type::Object" , [](){
             auto instance = JSON::ObjectNode();
-            if (instance.getType() != JSON::Type::Object)
-                return false;
 
-            return true;
+            return instance.getType() == JSON::Type::Object;
         }});
 
         tests.add({ "ObjectNode::getValue() returns a pointer to an unordered_map of pointers to ValueNode objects" , [](){
@@ -21,11 +19,8 @@ namespace ObjectNodeTests {
             auto ptr = instance.getValue();
 
             auto mapPtr = static_cast<MapType*>(ptr);
-            if ((*mapPtr) != MapType()) {
-                return false;
-            }
 
-            return true;
+            return *mapPtr == MapType();
         }});
 
         tests.add({ "ObjectNode::insert() effectively moves key and value pairs into its inner storage", [](){
@@ -34,11 +29,26 @@ namespace ObjectNodeTests {
             auto stringNodePtr = std::make_unique<JSON::StringNode>("beef");
 
             instance.insert(std::move(rudeKey), std::move(stringNodePtr));
-            if (stringNodePtr || !rudeKey->empty()) { // both should have been cannibalized
-                return false;
-            }
 
-            return true;
+            return !stringNodePtr && rudeKey->empty();
+        }});
+
+        tests.add({ "ObjectNode::insert() replaces value at key if key already exists", [](){
+            auto instance = JSON::ObjectNode();
+            auto value1Ptr = std::make_unique<JSON::StringNode>("beef");
+            auto value2Ptr = std::make_unique<JSON::StringNode>("beefy beef beef");
+
+            instance.insert(std::make_unique<std::string>("beefkey"), std::move(value1Ptr));
+            auto vector = static_cast<JSON::ObjectStorageType*>(instance.getValue());
+            auto string = static_cast<std::string*>(vector->at("beefkey")->getValue());
+            if (*string != "beef")
+                return false;
+
+            instance.insert(std::make_unique<std::string>("beefkey"), std::move(value2Ptr));
+            vector = static_cast<JSON::ObjectStorageType*>(instance.getValue());
+            string = static_cast<std::string*>(vector->at("beefkey")->getValue());
+
+            return *string == "beefy beef beef";
         }});
     }
 }

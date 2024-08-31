@@ -16,18 +16,30 @@
 #include "value-node/StringNode.hpp"
 
 namespace JSON {
-    using StackType = std::stack<
-        std::pair<std::unique_ptr<std::string>, std::unique_ptr<ValueNodeBase>>
-    >;
-
     class Parser {
-        StackType stack;
+        struct StackElement {
+            std::unique_ptr<std::string> key;
+            std::unique_ptr<ValueNodeBase> value;
+            bool open{ false };
+
+            bool isOpenArray() const;
+            bool isOpenObject() const;
+            bool isKeyValuePair() const;
+        };
+
+        std::stack<StackElement> stack;
+
+        bool canBeginObjectOrArray() const;
+        void collapseContainer(const Type);
+        bool expectingKey() const;
+        bool expectingValue() const;
+        bool readyForObjectKey() const;
 
     public:
         Parser() : stack() {};
 
         // takes an istream& and returns a JSON instance, or throws runtime_error
-        JSON parse(std::istream& stream);
+        JSON parse(std::istream&);
     };
 }
 

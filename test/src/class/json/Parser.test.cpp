@@ -10,35 +10,39 @@ struct numberTestRow {
 };
 
 std::vector<numberTestRow> numberTestrows{
-    { " -.1", 0, SHOULD_THROW },
-    { " 9  ", 9 },
-    { "-0e12", -0e12 },
-    { "-0E12", -0E12 },
-    { "-10e12", -10e12 },
-    { ".", 0, SHOULD_THROW },
-    { ".0", 0, SHOULD_THROW },
-    { "0.", 0, SHOULD_THROW },
-    { "0.0", 0 },
-    { "0.1", 0.1 },
-    { "0.1234", 0.1234 },
-    { "0", 0 },
-    { "00", 0, SHOULD_THROW },
-    { "0E0", 0E0 },
-    { "0e12", 0e12 },
-    { "1.3.4", 0, SHOULD_THROW },
-    { "10-10", 0, SHOULD_THROW },
-    { "10..0", 0, SHOULD_THROW },
-    { "10..0", 0, SHOULD_THROW },
-    { "10.01", 10.01 },
-    { "10e12", 10e12 },
-    { "123.45", 123.45 },
-    { "12345", 12345 },
-    { "1e", 0, SHOULD_THROW },
-    { "e1", 0, SHOULD_THROW },
-    { "ee", 0, SHOULD_THROW },
-    { "eE", 0, SHOULD_THROW },
-    { "Ee", 0, SHOULD_THROW },
-    { "EE", 0, SHOULD_THROW },
+    { "",       0,     SHOULD_THROW },
+    { " ",      0,     SHOULD_THROW },
+    { " -.1",   0,     SHOULD_THROW },
+    { " 9  ",   9                   },
+    { "-0e12",  -0e12               },
+    { "-0E12",  -0E12               },
+    { "-10e12", -10e12              },
+    { ".",      0,     SHOULD_THROW },
+    { ".0",     0,     SHOULD_THROW },
+    { "0.",     0,     SHOULD_THROW },
+    { "0 .",    0,     SHOULD_THROW },
+    { "0.0",    0                   },
+    { "0.1",    0.1                 },
+    { "0.1234", 0.1234              },
+    { "0",      0                   },
+    { "00",     0,     SHOULD_THROW },
+    { "0E0",    0E0                 },
+    { "0e12",   0e12                },
+    { "1.3.4",  0,     SHOULD_THROW },
+    { "10-10",  0,     SHOULD_THROW },
+    { "10..0",  0,     SHOULD_THROW },
+    { "10..0",  0,     SHOULD_THROW },
+    { "10.01",  10.01               },
+    { "10e12",  10e12               },
+    { "123.45", 123.45              },
+    { "12345",  12345               },
+    { "1e",     0,     SHOULD_THROW },
+    { "e1",     0,     SHOULD_THROW },
+    { "ee",     0,     SHOULD_THROW },
+    { "eE",     0,     SHOULD_THROW },
+    { "Ee",     0,     SHOULD_THROW },
+    { "EE",     0,     SHOULD_THROW },
+    { "3 3",    0,     SHOULD_THROW },
 };
 
 namespace ParserTests {
@@ -330,6 +334,91 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "throws on {\"amount\": }", [](){
+            std::stringstream sstream("{\"amount\": }");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("unexpected '}' encountered")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {: 3}", [](){
+            std::stringstream sstream("{: 3}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("expected key, got ':'")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {\"thing\": 2, : 3}", [](){
+            std::stringstream sstream("{\"thing\": 2, : 3}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("expected key, got ':'")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {\"thing\": 2, 3}", [](){
+            std::stringstream sstream("{\"thing\": 2, 3}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("unexpected '3' when key was expected")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {{}}", [](){
+            std::stringstream sstream("{{}}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("null key encountered while collapsing Object")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
         tests.add({ "throws on {amount\": 3}", [](){
             std::stringstream sstream("{amount\": 3}");
             auto parser = JSON::Parser();
@@ -339,6 +428,23 @@ namespace ParserTests {
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("unexpected 'a' when key was expected")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {\"amount\": 3,}", [](){
+            std::stringstream sstream("{\"amount\": 3,}");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("unexpected '}' encountered")) {
                     std::cout << error.what() << std::endl;
                     return false;
                 }
@@ -361,6 +467,24 @@ namespace ParserTests {
 
             return true;
         }});
+
+        tests.add({ "throws on {\"amount\": , \"category\": 2}", [](){
+            std::stringstream sstream(R"({"amount": , "category": 2})");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("unexpected ',' encountered")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
 
         tests.add({ "throws on {\"amount\": 3 \"category\": 2}", [](){
             std::stringstream sstream(R"({"amount": 3 "category": 2})");
@@ -478,12 +602,101 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "correctly parses [{}, {}. {}]", [](){
+            std::stringstream sstream(R"([{}, {}, {}])");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
+            auto received = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
+            if (received->size() != 3)
+                return false;
+
+            std::all_of(received->begin(), received->end(), [](std::unique_ptr<JSON::ValueNodeBase>& v){
+                if (v->getType() == JSON::Type::Object)
+                    return false;
+
+                return static_cast<JSON::ObjectStorageType*>(v->getValue())->empty();
+            });
+
+            return true;
+        }});
+
+        tests.add({ "correctly parses [[], []. []]", [](){
+            std::stringstream sstream(R"([[], [], []])");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
+            auto received = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
+            if (received->size() != 3)
+                return false;
+
+            std::all_of(received->begin(), received->end(), [](std::unique_ptr<JSON::ValueNodeBase>& v){
+                if (v->getType() == JSON::Type::Array)
+                    return false;
+
+                return static_cast<JSON::ArrayStorageType*>(v->getValue())->empty();
+            });
+
+            return true;
+        }});
+
+        tests.add({ "correctly parses [[[]]]", [](){
+            std::stringstream sstream(R"([[[]]])");
+            auto parser = JSON::Parser();
+
+            auto json = parser.parse(sstream);
+            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
+            auto received = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
+            if (received->size() != 1)
+                return false;
+
+            auto nested1 = static_cast<JSON::ArrayStorageType*>(received->front()->getValue());
+            if (nested1->size() != 1)
+                return false;
+
+            auto nested2 = static_cast<JSON::ArrayStorageType*>(nested1->front()->getValue());
+            if (nested2->size() != 0)
+                return false;
+
+            return true;
+        }});
+
+        tests.add({"throws on [, 3]", [](){
+            try {
+                auto ss = std::stringstream("[, 3]");
+                JSON::Parser().parse(ss);
+                return false; // should have thrown
+            } catch (std::runtime_error& error) {
+                if (error.what() != std::string("unexpected ',' encountered")) {
+                    std::cout << "got unexpected error: " << error.what() << std::endl;
+                    return false;
+                }
+            }
+            return true;
+        }});
+
+        tests.add({"throws on [3, ]", [](){
+            try {
+                auto ss = std::stringstream("[3, ]");
+                JSON::Parser().parse(ss);
+                return false; // should have thrown
+            } catch (std::runtime_error& error) {
+                if (error.what() != std::string("dangling comma before ']'")) {
+                    std::cout << "got unexpected error: " << error.what() << std::endl;
+                    return false;
+                }
+            }
+            return true;
+        }});
+
         tests.add({"JSON::Parser::parse(): Junk Values"});
         tests.add({"throws on 'Why, hello! I am junk. Nice to meet you!'", [](){
             try {
                 auto ss = std::stringstream("Why, hello! I am junk. Nice to meet you!");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'W' is invalid in JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -497,7 +710,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("falsy");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'y' is invalid in JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -511,7 +724,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("fal3se");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'fal3se' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -525,7 +738,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("13true");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'13true' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
@@ -539,9 +752,38 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("true13");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'true13' is invalid JSON")) {
+                    std::cout << "got unexpected error: " << error.what() << std::endl;
+                    return false;
+                }
+            }
+            return true;
+        }});
+
+        tests.add({"throws on 'nu ll'", [](){
+            try {
+                auto ss = std::stringstream("nu ll");
+                JSON::Parser().parse(ss);
+                return false; // should have thrown
+            } catch (std::runtime_error& error) {
+                if (error.what() != std::string("'nu ll' is invalid JSON")) {
+                    std::cout << "got unexpected error: " << error.what() << std::endl;
+                    return false;
+                }
+            }
+            return true;
+        }});
+
+
+        tests.add({"throws on 'fa lse'", [](){
+            try {
+                auto ss = std::stringstream("fa lse");
+                JSON::Parser().parse(ss);
+                return false; // should have thrown
+            } catch (std::runtime_error& error) {
+                if (error.what() != std::string("'fa lse' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
                     return false;
                 }
@@ -553,7 +795,7 @@ namespace ParserTests {
             try {
                 auto ss = std::stringstream("1true3");
                 JSON::Parser().parse(ss);
-                return false; // show have thrown
+                return false; // should have thrown
             } catch (std::runtime_error& error) {
                 if (error.what() != std::string("'1true3' is invalid JSON")) {
                     std::cout << "got unexpected error: " << error.what() << std::endl;
