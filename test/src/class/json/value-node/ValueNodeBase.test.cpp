@@ -25,5 +25,19 @@ namespace ValueNodeBaseTests {
 
             return true;
         }});
+
+        tests.add({ "JSON::ValueNodeBase == JSON::ValueNodeBase is false", [](){
+            auto node1 = JSON::ValueNodeBase();
+            auto node2 = JSON::ValueNodeBase();
+
+            return !(node1 == node2);
+        }});
+
+        tests.add({ "JSON::ValueNodeBase != JSON::ValueNodeBase is true", [](){
+            auto node1 = JSON::ValueNodeBase();
+            auto node2 = JSON::ValueNodeBase();
+
+            return node1 != node2;
+        }});
     }
 }

@@ -25,6 +25,9 @@ namespace JSON {
     public:
         ValueNodeBase() : type(Type::Empty), value(nullptr) {}
 
+        virtual bool operator==(const ValueNodeBase& other) const;
+        virtual bool operator!=(const ValueNodeBase& other) const;
+
         virtual Type getType() const {
             return type;
         }
