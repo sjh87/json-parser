@@ -3,6 +3,7 @@
 
 #include "../../../../../src/class/test/TestRunner.hpp"
 #include "../../../../../src/class/json/value-node/ArrayNode.hpp"
+#include "../../../../../src/class/json/value-node/NumberNode.hpp"
 #include "../../../../../src/class/json/value-node/StringNode.hpp"
 
 namespace ArrayNodeTests {

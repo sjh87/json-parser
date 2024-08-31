@@ -62,5 +62,87 @@ namespace ArrayNodeTests {
 
             return true;
         }});
+
+        tests.add({ "JSON::ArrayNode({ 1, 2, 3 }) == JSON::ArrayNode({ 1, 2, 3 }) is true", [](){
+            auto node1 = JSON::ArrayNode();
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(3)));
+
+            auto node2 = JSON::ArrayNode();
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(3)));
+
+            return node1 == node2;
+        }});
+
+        tests.add({ "JSON::ArrayNode({ 1, 2, 3 }) == JSON::ArrayNode({ 1, 2 }) is false", [](){
+            auto node1 = JSON::ArrayNode();
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(3)));
+
+            auto node2 = JSON::ArrayNode();
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+
+            return !(node1 == node2);
+        }});
+
+        tests.add({ "JSON::ArrayNode({ 1, 2, 3 }) == JSON::ArrayNode({ 1, 2, 4 }) is false", [](){
+            auto node1 = JSON::ArrayNode();
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(3)));
+
+            auto node2 = JSON::ArrayNode();
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(4)));
+
+            return !(node1 == node2);
+        }});
+
+        tests.add({ "JSON::ArrayNode({ 1, 2, 3 }) != JSON::ArrayNode({ 1, 2, 3 }) is false", [](){
+            auto node1 = JSON::ArrayNode();
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(3)));
+
+            auto node2 = JSON::ArrayNode();
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(3)));
+
+            return !(node1 != node2);
+        }});
+
+        tests.add({ "JSON::ArrayNode({ 1, 2, 3 }) != JSON::ArrayNode({ 1, 2 }) is true", [](){
+            auto node1 = JSON::ArrayNode();
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(3)));
+
+            auto node2 = JSON::ArrayNode();
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+
+            return node1 != node2;
+        }});
+
+        tests.add({ "JSON::ArrayNode({ 1, 2, 3 }) != JSON::ArrayNode({ 1, 2, 4 }) is true", [](){
+            auto node1 = JSON::ArrayNode();
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node1.insert(std::move(std::make_unique<JSON::NumberNode>(3)));
+
+            auto node2 = JSON::ArrayNode();
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(1)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(2)));
+            node2.insert(std::move(std::make_unique<JSON::NumberNode>(4)));
+
+            return node1 != node2;
+        }});
     }
 }

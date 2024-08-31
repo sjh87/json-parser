@@ -22,6 +22,7 @@ build:
 	${TEST_SRC}/class/json/value-node/ValueNodeBase.test.cpp \
 	${TEST_SRC}/class/json/JSON.test.cpp \
 	${SRC}/class/json/Parser.cpp \
+	${SRC}/class/json/value-node/ArrayNode.cpp \
 	${SRC}/class/json/value-node/BooleanNode.cpp \
 	${SRC}/class/json/value-node/NullNode.cpp \
 	${SRC}/class/json/value-node/NumberNode.cpp \
