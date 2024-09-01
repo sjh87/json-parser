@@ -1,6 +1,13 @@
 #ifndef ARRAY_NODE_H
 #define ARRAY_NODE_H
 
+#include <algorithm>
+
+#include "BooleanNode.hpp"
+#include "NullNode.hpp"
+#include "NumberNode.hpp"
+#include "ObjectNode.hpp"
+#include "StringNode.hpp"
 #include "ValueNodeBase.hpp"
 
 namespace JSON {
@@ -12,6 +19,9 @@ namespace JSON {
 
     public:
         ArrayNode() : type(Type::Array), value(std::make_unique<ArrayStorageType>()) {}
+
+        bool operator==(const ValueNodeBase&) const override;
+        bool operator!=(const ValueNodeBase&) const override;
 
         Type getType() const override {
             return type;

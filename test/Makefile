@@ -13,6 +13,17 @@ build:
 	mkdir -p build && g++ \
 	$(DEBUG_FLAGS) \
 	-std=c++17 -Wall -Wextra -Wpedantic -Werror \
+	${SRC}/class/json/JSON.cpp \
+	${SRC}/class/json/Parser.cpp \
+	${SRC}/class/json/value-node/ArrayNode.cpp \
+	${SRC}/class/json/value-node/BooleanNode.cpp \
+	${SRC}/class/json/value-node/NullNode.cpp \
+	${SRC}/class/json/value-node/NumberNode.cpp \
+	${SRC}/class/json/value-node/ObjectNode.cpp \
+	${SRC}/class/json/value-node/StringNode.cpp \
+	${SRC}/class/json/value-node/ValueNodeBase.cpp \
+	${TEST_SRC}/class/json/JSON.test.cpp \
+	${TEST_SRC}/class/json/Parser.test.cpp \
 	${TEST_SRC}/class/json/value-node/ArrayNode.test.cpp \
 	${TEST_SRC}/class/json/value-node/BooleanNode.test.cpp \
 	${TEST_SRC}/class/json/value-node/NullNode.test.cpp \
@@ -20,9 +31,6 @@ build:
 	${TEST_SRC}/class/json/value-node/ObjectNode.test.cpp \
 	${TEST_SRC}/class/json/value-node/StringNode.test.cpp \
 	${TEST_SRC}/class/json/value-node/ValueNodeBase.test.cpp \
-	${TEST_SRC}/class/json/JSON.test.cpp \
-	${SRC}/class/json/Parser.cpp \
-	${TEST_SRC}/class/json/Parser.test.cpp \
 	${TEST_SRC}/run.cpp \
 	-o ${BUILD_DIR}/run
 

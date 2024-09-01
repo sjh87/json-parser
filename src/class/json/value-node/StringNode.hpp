@@ -11,6 +11,9 @@ namespace JSON {
     public:
         StringNode(std::string&& s) : type(Type::String), value(std::make_unique<std::string>(std::move(s))) {}
 
+        bool operator==(const ValueNodeBase& other) const override;
+        bool operator!=(const ValueNodeBase& other) const override;
+
         Type getType() const override {
             return type;
         }

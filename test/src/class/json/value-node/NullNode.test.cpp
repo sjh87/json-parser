@@ -23,5 +23,19 @@ namespace NullNodeTests {
 
             return true;
         }});
+
+        tests.add({ "JSON::NullNode() == JSON::NullNode() is true", [](){
+            const auto node1 = JSON::NullNode();
+            const auto node2 = JSON::NullNode();
+
+            return node1 == node2;
+        }});
+
+        tests.add({ "JSON::NullNode() != JSON::NullNode() is false", [](){
+            const auto node1 = JSON::NullNode();
+            const auto node2 = JSON::NullNode();
+
+            return !(node1 != node2);
+        }});
     }
 }

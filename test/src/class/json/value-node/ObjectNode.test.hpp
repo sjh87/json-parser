@@ -2,6 +2,7 @@
 #define OBJECT_NODE_TESTS_H
 
 #include "../../../../../src/class/test/TestRunner.hpp"
+#include "../../../../../src/class/json/value-node/BooleanNode.hpp"
 #include "../../../../../src/class/json/value-node/ObjectNode.hpp"
 #include "../../../../../src/class/json/value-node/StringNode.hpp"
 

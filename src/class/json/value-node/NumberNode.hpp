@@ -11,6 +11,9 @@ namespace JSON {
     public:
         NumberNode(double n) : type(Type::Number), value(std::make_unique<double>(n)) {}
 
+        bool operator==(const ValueNodeBase& other) const override;
+        bool operator!=(const ValueNodeBase& other) const override;
+
         Type getType() const override {
             return type;
         }

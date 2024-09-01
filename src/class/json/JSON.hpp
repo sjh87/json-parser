@@ -11,6 +11,9 @@ namespace JSON {
         JSON() = delete;
         JSON(std::unique_ptr<ValueNodeBase>&& up) : head(std::move(up)) {}
 
+        bool operator==(const JSON&) const;
+        bool operator!=(const JSON&) const;
+
         Type getType() const {
             return head->getType();
         }
