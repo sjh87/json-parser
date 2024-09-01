@@ -2,7 +2,7 @@
 
 namespace JSON {
     using MapPairType = std::pair<const std::string, std::unique_ptr<ValueNodeBase>>;
-    std::function<bool(const MapPairType&)> isEqual(ObjectStorageType* other) {
+    static std::function<bool(const MapPairType&)> isEqual(ObjectStorageType* other) {
         return [other](const MapPairType& pair) {
             const std::string& key = pair.first;
             ValueNodeBase* value = pair.second.get();
