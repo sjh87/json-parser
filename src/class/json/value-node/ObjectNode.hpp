@@ -2,6 +2,7 @@
 #define OBJECT_NODE_H
 
 #include <algorithm>
+#include <functional>
 
 #include "ArrayNode.hpp"
 #include "BooleanNode.hpp"
