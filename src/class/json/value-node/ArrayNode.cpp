@@ -1,55 +1,41 @@
 #include "ArrayNode.hpp"
 
 namespace JSON {
+    static bool isEqual(const std::unique_ptr<ValueNodeBase>&v1, const std::unique_ptr<ValueNodeBase>&v2) {
+        if (v1->getType() != v2->getType())
+            return false;
+
+        switch(v1->getType()) {
+            case Type::Array:
+                return *(static_cast<ArrayNode*>(v1.get())) ==
+                    *(static_cast<ArrayNode*>(v2.get()));
+            case Type::Boolean:
+                return *(static_cast<BooleanNode*>(v1.get())) ==
+                    *(static_cast<BooleanNode*>(v2.get()));
+            case Type::Null:
+                return true;
+            case Type::Number:
+                return *(static_cast<NumberNode*>(v1.get())) ==
+                    *(static_cast<NumberNode*>(v2.get()));
+            case Type::Object:
+                return *(static_cast<ObjectNode*>(v1.get())) ==
+                    *(static_cast<ObjectNode*>(v2.get()));
+            case Type::String:
+                return *(static_cast<StringNode*>(v1.get())) ==
+                    *(static_cast<StringNode*>(v2.get()));
+            default:
+                return false;
+        }
+    };
+
     bool ArrayNode::operator==(const ValueNodeBase& other) const {
+
         if (other.getType() == Type::Array) {
             auto otherVector = static_cast<ArrayStorageType*>(other.getValue());
-            if (value->size() == otherVector->size()) {
-                for (size_t i = 0; i < value->size(); i++) {
-                    auto type = value->at(i)->getType();
-                    if (type != otherVector->at(i)->getType())
-                        return false;
-                    
-                    switch(type) {
-                        case Type::Array:
-                            if (*(static_cast<ArrayNode*>(value->at(i).get())) ==
-                                *(static_cast<ArrayNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return false;
-                        case Type::Boolean:
-                            if (*(static_cast<BooleanNode*>(value->at(i).get())) ==
-                                *(static_cast<BooleanNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return false;
-                        case Type::Null:
-                            break;
-                        case Type::Number:
-                            if (*(static_cast<NumberNode*>(value->at(i).get())) ==
-                                *(static_cast<NumberNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return false;
-                        case Type::Object:
-                            if (*(static_cast<ObjectNode*>(value->at(i).get())) ==
-                                *(static_cast<ObjectNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return false;
-                        case Type::String:
-                            if (*(static_cast<StringNode*>(value->at(i).get())) ==
-                                *(static_cast<StringNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return false;
-                        default:
-                            return false;
-                    }
-                }
+            if (value->size() != otherVector->size())
+                return false;
 
-                return true;
-            }
+            return std::equal(value->begin(), value->end(), otherVector->begin(), isEqual);
         }
 
         return false;
@@ -58,52 +44,10 @@ namespace JSON {
     bool ArrayNode::operator!=(const ValueNodeBase& other) const {
         if (other.getType() == Type::Array) {
             auto otherVector = static_cast<ArrayStorageType*>(other.getValue());
-            if (value->size() == otherVector->size()) {
-                for (size_t i = 0; i < value->size(); i++) {
-                    auto type = value->at(i)->getType();
-                    if (type != otherVector->at(i)->getType())
-                        return true;
-                    
-                    switch(type) {
-                        case Type::Array:
-                            if (*(static_cast<ArrayNode*>(value->at(i).get())) ==
-                                *(static_cast<ArrayNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return true;
-                        case Type::Boolean:
-                            if (*(static_cast<BooleanNode*>(value->at(i).get())) ==
-                                *(static_cast<BooleanNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return true;
-                        case Type::Null:
-                            break;
-                        case Type::Number:
-                            if (*(static_cast<NumberNode*>(value->at(i).get())) ==
-                                *(static_cast<NumberNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return true;
-                        case Type::Object:
-                            if (*(static_cast<ObjectNode*>(value->at(i).get())) ==
-                                *(static_cast<ObjectNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return true;
-                        case Type::String:
-                            if (*(static_cast<StringNode*>(value->at(i).get())) ==
-                                *(static_cast<StringNode*>(otherVector->at(i).get())))
-                                    break;
-                            
-                            return true;
-                        default:
-                            return true;
-                    }
-                }
+            if (value->size() != otherVector->size())
+                return true;
 
-                return false;
-            }
+            return !std::equal(value->begin(), value->end(), otherVector->begin(), isEqual);
         }
 
         return true;
