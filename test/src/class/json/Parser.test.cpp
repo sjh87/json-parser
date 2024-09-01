@@ -60,10 +60,9 @@ namespace ParserTests {
                     std::stringstream sstream(r.payload);
                     auto json = parser.parse(sstream);
                     if (r.shouldThrow)
-                        return false;
-                    auto numboNode = static_cast<JSON::NumberNode*>(json.get());
-                    auto value = static_cast<double*>(numboNode->getValue());
-                    return *value == r.expected;
+                        return false; // should have thrown and been caught below
+
+                    return json == JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(r.expected)));
                 } catch (std::runtime_error& error) {
                     if (r.shouldThrow) {
                         return true;
