@@ -50,5 +50,203 @@ namespace ObjectNodeTests {
 
             return *string == "beefy beef beef";
         }});
+
+        tests.add({ "JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) == JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) is true", [](){
+            auto node1 = JSON::ObjectNode();
+            node1.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node1.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            auto node2 = JSON::ObjectNode();
+            node2.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node2.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            return node1 == node2;
+        }});
+
+        tests.add({ "JSON::ObjectNode({{ \"pork\": true }}) == JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) is false", [](){
+            auto node1 = JSON::ObjectNode();
+            node1.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            auto node2 = JSON::ObjectNode();
+            node2.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node2.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            return !(node1 == node2);
+        }});
+
+        tests.add({ "JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) == JSON::ObjectNode({{ \"pork\": true }, {\"chop\": true}}) is false", []() {
+            auto node1 = JSON::ObjectNode();
+            node1.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node1.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            auto node2 = JSON::ObjectNode();
+            node2.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node2.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            return !(node1 == node2);
+        }});
+
+        tests.add({ "JSON::ObjectNode({{ \"pork\": true }, {\"loin\": false}}) == JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) is false", []() {
+            auto node1 = JSON::ObjectNode();
+            node1.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node1.insert(
+                std::move(std::make_unique<std::string>("loin")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            auto node2 = JSON::ObjectNode();
+            node2.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node2.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            return !(node1 == node2);
+        }});
+
+        tests.add({ "JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) != JSON::ObjectNode({{ \"pork\": true }, {\"chop\": true}}) is true", [](){
+            auto node1 = JSON::ObjectNode();
+            node1.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node1.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            auto node2 = JSON::ObjectNode();
+            node2.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node2.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            return node1 != node2;
+        }});
+
+        tests.add({ "JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) != JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) is false", [](){
+            auto node1 = JSON::ObjectNode();
+            node1.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node1.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            auto node2 = JSON::ObjectNode();
+            node2.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node2.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            return !(node1 != node2);
+        }});
+
+        tests.add({ "JSON::ObjectNode({{ \"pork\": true }}) != JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) is true", [](){
+            auto node1 = JSON::ObjectNode();
+            node1.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            auto node2 = JSON::ObjectNode();
+            node2.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node2.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            return node1 != node2;
+        }});
+
+        tests.add({ "JSON::ObjectNode({{ \"pork\": true }, {\"loin\": false}}) != JSON::ObjectNode({{ \"pork\": true }, {\"chop\": false}}) is true", []() {
+            auto node1 = JSON::ObjectNode();
+            node1.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node1.insert(
+                std::move(std::make_unique<std::string>("loin")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            auto node2 = JSON::ObjectNode();
+            node2.insert(
+                std::move(std::make_unique<std::string>("pork")),
+                std::make_unique<JSON::BooleanNode>(true)
+            );
+
+            node2.insert(
+                std::move(std::make_unique<std::string>("chop")),
+                std::make_unique<JSON::BooleanNode>(false)
+            );
+
+            return node1 != node2;
+        }});
     }
 }
