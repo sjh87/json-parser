@@ -146,6 +146,9 @@ namespace JSON {
             std::unique_ptr<ValueNodeBase> node;
             switch (byte) {
             case ',':
+                if (justSawComma)
+                    throw std::runtime_error("double comma ',,' encountered");
+
                 if (stack.empty()
                     || expectingKey()
                     || ((stack.top().isOpenArray()
@@ -264,6 +267,9 @@ namespace JSON {
                 collapseContainer(Type::Object);
                 break;
             case ':':
+                if (justSawColon)
+                    throw std::runtime_error("double colon '::' encountered");
+
                 if (expectingKey()) {
                     throw std::runtime_error("expected key, got ':'");
                 } else if (!expectingValue()) {
@@ -301,8 +307,9 @@ namespace JSON {
                 if (!justSawColon && expectingValue() && parsingBuffer.empty())
                     throw std::runtime_error("expected ':', saw '" + std::string(1, byte) + "'");
 
-                justSawColon = false;
                 parsingBuffer.push_back(byte);
+                justSawColon = false;
+                justSawComma = false;
                 break;
             case '"':
                 if (!parsingBuffer.empty())

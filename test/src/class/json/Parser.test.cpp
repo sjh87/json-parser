@@ -526,6 +526,39 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "throws on {\"amount\":: 7, \"category\": 2}", [](){
+            std::stringstream sstream(R"({"amount":: 7, "category": 2})");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("double colon '::' encountered")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
+        tests.add({ "throws on {\"amount\": 7,, \"category\": 2}", [](){
+            std::stringstream sstream(R"({"amount": 7,, "category": 2})");
+            auto parser = JSON::Parser();
+
+            try {
+                parser.parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("double comma ',,' encountered")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
 
         tests.add({ "throws on {\"amount\": 3 \"category\": 2}", [](){
             std::stringstream sstream(R"({"amount": 3 "category": 2})");
