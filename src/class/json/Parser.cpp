@@ -329,6 +329,12 @@ namespace JSON {
                         }
                     } else if ('\t' == byte) {
                         throw std::runtime_error("unescaped tab character in string is not permitted");
+                    } else if ('\n' == byte || '\r' == byte) {
+                        throw std::runtime_error("unescaped newline or carriage return character in string is not permitted");
+                    } else if ('\b' == byte) {
+                        throw std::runtime_error("unescaped backspace character in string is not permitted");
+                    } else if ('\f' == byte) {
+                        throw std::runtime_error("unescaped form feed character in string is not permitted");
                     }
 
                     parsingBuffer.push_back(byte);
