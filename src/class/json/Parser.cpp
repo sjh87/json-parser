@@ -1,7 +1,7 @@
 #include "Parser.hpp"
 
 namespace JSON {
-    const std::set<char> permittedEscapes{ '\"', '\\', '\b', '\f', '\n', '\r', '\t' };
+    const std::set<char> permittedEscapes{ '"', '\\', 'b', 'f', 'n', 'r', 't' };
 
     // stole this and tested it pretty thoroughly; guilty till proven innocent,
     // like all regex :-D
@@ -79,7 +79,7 @@ namespace JSON {
             while (!temp.empty()) {
                 auto tempTop = std::move(temp.top());
                 if (tempTop.key)
-                    throw std::runtime_error("non-empty key encountered while collapsing Array");
+                    throw std::runtime_error("non-null key encountered while collapsing Array");
                 
                 arrayPtr->insert(std::move(tempTop.value));
                 
@@ -327,6 +327,14 @@ namespace JSON {
                         } else {
                             break;
                         }
+                    } else if ('\t' == byte) {
+                        throw std::runtime_error("unescaped tab character in string is not permitted");
+                    } else if ('\n' == byte || '\r' == byte) {
+                        throw std::runtime_error("unescaped newline or carriage return character in string is not permitted");
+                    } else if ('\b' == byte) {
+                        throw std::runtime_error("unescaped backspace character in string is not permitted");
+                    } else if ('\f' == byte) {
+                        throw std::runtime_error("unescaped form feed character in string is not permitted");
                     }
 
                     parsingBuffer.push_back(byte);
