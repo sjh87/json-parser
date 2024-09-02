@@ -1,7 +1,7 @@
 #include "Parser.hpp"
 
 namespace JSON {
-    const std::set<char> permittedEscapes{ '\"', '\\', '\b', '\f', '\n', '\r', '\t' };
+    const std::set<char> permittedEscapes{ '"', '\\', 'b', 'f', 'n', 'r', 't' };
 
     // stole this and tested it pretty thoroughly; guilty till proven innocent,
     // like all regex :-D
@@ -327,6 +327,8 @@ namespace JSON {
                         } else {
                             break;
                         }
+                    } else if ('\t' == byte) {
+                        throw std::runtime_error("unescaped tab character in string is not permitted");
                     }
 
                     parsingBuffer.push_back(byte);
