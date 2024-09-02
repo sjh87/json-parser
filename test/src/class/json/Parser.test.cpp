@@ -445,6 +445,21 @@ namespace ParserTests {
             return true;
         }});
 
+        tests.add({ "throws on missing colon between object key and value", [](){
+            std::stringstream sstream(R"({"i am a bad json object" null})");
+            try {
+                JSON::Parser().parse(sstream);
+                return false; // should have thrown
+            } catch(std::runtime_error& error) {
+                if (error.what() != std::string("expected ':', saw 'n'")) {
+                    std::cout << error.what() << std::endl;
+                    return false;
+                }
+            }
+
+            return true;
+        }});
+
         tests.add({ "throws on {amount\": 3}", [](){
             std::stringstream sstream("{amount\": 3}");
             auto parser = JSON::Parser();
@@ -528,6 +543,7 @@ namespace ParserTests {
         }});
 
         tests.add({ "JSON::Parser::parse(): Array" });
+
         tests.add({ "correctly parses [9]", [](){
             std::stringstream sstream("[9]");
             auto parser = JSON::Parser();

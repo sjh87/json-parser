@@ -1,7 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <array>
 #include <memory>
 #include <regex>
 #include <set>
@@ -9,6 +8,7 @@
 #include <stack>
 #include <string>
 #include "JSON.hpp"
+#include "value-node/ValueNodeBase.hpp"
 #include "value-node/ArrayNode.hpp"
 #include "value-node/BooleanNode.hpp"
 #include "value-node/NullNode.hpp"

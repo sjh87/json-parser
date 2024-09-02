@@ -118,6 +118,7 @@ namespace JSON {
 
     JSON Parser::parse(std::istream& stream) {
         char byte; // TODO figure out UTF-8 parsing, validation
+        bool justSawColon{ false };
         bool justSawComma{ false };
         std::string parsingBuffer;
         std::unique_ptr<ValueNodeBase> head;
@@ -149,7 +150,8 @@ namespace JSON {
                     || expectingKey()
                     || ((stack.top().isOpenArray()
                     || expectingValue()) && parsingBuffer.empty())
-                    || (stack.size() == 1 && !stack.top().open)) {
+                    || (stack.size() == 1 && !stack.top().open)
+                    || justSawColon) {
                     throw std::runtime_error("unexpected ',' encountered");
                 }
 
@@ -181,9 +183,10 @@ namespace JSON {
                             std::move(node),
                             true
                     });
-                    } else if (stack.top().key) {
+                    } else if (stack.top().key && justSawColon) {
                         stack.top().value = std::move(node);
                         stack.top().open = true;
+                        justSawColon = false;
                     } else if (!stack.top().key) {
                         stack.push(StackElement{
                             std::move(std::unique_ptr<std::string>(nullptr)),
@@ -235,9 +238,10 @@ namespace JSON {
                             std::move(node),
                             true
                         });
-                    } else if (stack.top().key) {
+                    } else if (stack.top().key && justSawColon) {
                         stack.top().value = std::move(node);
                         stack.top().open = true;
+                        justSawColon = false;
                     }
                 } else {
                     throw std::runtime_error("unexpected '{' encountered");
@@ -247,7 +251,7 @@ namespace JSON {
 
                 break;
             case '}':
-                if (stack.empty() || ((justSawComma || expectingValue()) && parsingBuffer.empty())) {
+                if (stack.empty() || justSawColon || ((justSawComma || expectingValue()) && parsingBuffer.empty())) {
                     throw std::runtime_error("unexpected '}' encountered");
                 }
 
@@ -265,6 +269,9 @@ namespace JSON {
                 } else if (!expectingValue()) {
                     throw std::runtime_error("':' encountered outside of object");
                 }
+
+                justSawColon = true;
+
                 break;
             case '-':
             case '.':
@@ -290,6 +297,11 @@ namespace JSON {
             case 'u':
                 if (expectingKey())
                     throw std::runtime_error("unexpected '"+ std::string(1, byte) +"' when key was expected");
+
+                if (!justSawColon && expectingValue() && parsingBuffer.empty())
+                    throw std::runtime_error("expected ':', saw '" + std::string(1, byte) + "'");
+
+                justSawColon = false;
                 parsingBuffer.push_back(byte);
                 break;
             case '"':
@@ -330,6 +342,9 @@ namespace JSON {
                         parsingBuffer.clear();
                     }
                 }
+
+                justSawColon = false;
+
                 break;
             default:
                 if (!std::isspace(byte)) // locale-specific, I have read ¯\_(ツ)_/¯
