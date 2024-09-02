@@ -79,7 +79,7 @@ namespace JSON {
             while (!temp.empty()) {
                 auto tempTop = std::move(temp.top());
                 if (tempTop.key)
-                    throw std::runtime_error("non-empty key encountered while collapsing Array");
+                    throw std::runtime_error("non-null key encountered while collapsing Array");
                 
                 arrayPtr->insert(std::move(tempTop.value));
                 
