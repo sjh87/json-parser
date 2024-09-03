@@ -8,8 +8,11 @@
 
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <queue>
 #include <string>
+
+#include "../json/JSON.hpp"
 
 namespace Test {
     constexpr bool ISOLATE_TEST = true;
@@ -30,6 +33,16 @@ namespace Test {
             queue.push(tc);
         }
     };
+
+    template<class NodeType, typename type>
+    JSON::JSON createJSON(type& value) {
+        return JSON::JSON(std::move(std::make_unique<NodeType>(std::move(value))));
+    }
+
+    template<class NodeType>
+    JSON::JSON createJSON() {
+        return JSON::JSON(std::move(std::make_unique<NodeType>()));
+    }
 
     class TestRunner {
         std::queue<TestCase> queue;
