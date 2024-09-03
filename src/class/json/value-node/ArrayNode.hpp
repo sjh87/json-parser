@@ -19,6 +19,8 @@ namespace JSON {
 
     public:
         ArrayNode() : type(Type::Array), value(std::make_unique<ArrayStorageType>()) {}
+        ArrayNode(ArrayStorageType&& vector) :
+            type(Type::Array), value(std::make_unique<ArrayStorageType>(std::move(vector))) {};
 
         bool operator==(const ValueNodeBase&) const override;
         bool operator!=(const ValueNodeBase&) const override;

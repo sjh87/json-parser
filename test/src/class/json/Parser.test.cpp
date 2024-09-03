@@ -62,7 +62,7 @@ namespace ParserTests {
                     if (r.shouldThrow)
                         return false; // should have thrown and been caught below
 
-                    return json == JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(r.expected)));
+                    return json == Test::createJSON<JSON::NumberNode>(r.expected);
                 } catch (std::runtime_error& error) {
                     if (r.shouldThrow) {
                         return true;
@@ -76,52 +76,41 @@ namespace ParserTests {
         tests.add({ "JSON::Parser::parse(): Booleans" });
         tests.add({ "correctly parses true", [](){
             std::stringstream sstream(" true ");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
+            auto v = true;
 
-            auto json = parser.parse(sstream);
-            auto boolNode = static_cast<JSON::BooleanNode*>(json.get());
-            auto value = static_cast<bool*>(boolNode->getValue());
-            return *value;
+            return json == Test::createJSON<JSON::BooleanNode>(v);
         }});
 
         tests.add({ "correctly parses false", [](){
             std::stringstream sstream(" false");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
+            auto v = false;
 
-            auto json = parser.parse(sstream);
-            auto boolNode = static_cast<JSON::BooleanNode*>(json.get());
-            auto value = static_cast<bool*>(boolNode->getValue());
-            return !*value;
+            return json == Test::createJSON<JSON::BooleanNode>(v);
         }});
 
         tests.add({ "JSON::Parser::parse(): null" });
         tests.add({ "correctly parses null", [](){
             std::stringstream sstream(" null");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
 
-            auto json = parser.parse(sstream);
-            auto nullNode = static_cast<JSON::NullNode*>(json.get());
-            auto value = static_cast<std::string*>(nullNode->getValue());
-            return "null" == *value;
+            return json == Test::createJSON<JSON::NullNode>();
         }});
 
         tests.add({ "JSON::Parser::parse(): String" });
         tests.add({ "correctly parses \"pork chop sandwiches\"", [](){
             std::stringstream sstream(R"("pork chop sandwiches")");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
 
-            auto json = parser.parse(sstream);
-            auto stringNode = static_cast<JSON::StringNode*>(json.get());
-            auto value = static_cast<std::string*>(stringNode->getValue());
-            return "pork chop sandwiches" == *value;
+            return json == Test::createJSON<JSON::StringNode>("pork chop sandwiches");
         }});
 
         tests.add({ R"(throws on "\x15")", [](){
             std::stringstream sstream(R"("\x15")");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
             } catch (std::runtime_error& e) {
                 return e.what() == std::string("naughty escape sequence: \\x");
             }
@@ -132,10 +121,9 @@ namespace ParserTests {
 
         tests.add({ R"(throws on ["Illegal backslash escape: \017"])", [](){
             std::stringstream sstream(R"(["Illegal backslash escape: \017"])");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
             } catch (std::runtime_error& e) {
                 return e.what() == std::string("naughty escape sequence: \\0");
             }
@@ -145,195 +133,103 @@ namespace ParserTests {
 
         tests.add({ "correctly parses \"\"", [](){
             std::stringstream sstream(R"("")");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
 
-            auto json = parser.parse(sstream);
-            auto stringNode = static_cast<JSON::StringNode*>(json.get());
-            auto value = static_cast<std::string*>(stringNode->getValue());
-
-            return "" == *value;
+            return json == Test::createJSON<JSON::StringNode>("");
         } });
 
         tests.add({ "JSON::Parser::parse(): Object" });
         tests.add({ "correctly parses {\"emptyMsg\": \"\"}", [](){
             std::stringstream sstream(R"({"emptyMsg": ""})");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
 
-            auto json = parser.parse(sstream);
-            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
-            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
-            if (value->size() != 1)
-                return false;
+            JSON::ObjectStorageType map;
+            map.emplace("emptyMsg", std::make_unique<JSON::StringNode>(""));
 
-            if (value->at("emptyMsg")->getType() != JSON::Type::String)
-                return false;
-
-            auto receivedNumberPtr = static_cast<std::string*>(value->at("emptyMsg")->getValue());
-
-            return *receivedNumberPtr == "";
+            return json == Test::createJSON<JSON::ObjectNode>(map);
         }});
 
         tests.add({ "correctly parses {\"blah\": 4, \"blah\": 5}", [](){
             std::stringstream sstream(R"({"blah": 4, "blah": 5})");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
 
-            auto json = parser.parse(sstream);
-            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
-            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
-            if (value->size() != 1)
-                return false;
+            JSON::ObjectStorageType map;
+            map.emplace("blah", std::make_unique<JSON::NumberNode>(5));
 
-            if (value->at("blah")->getType() != JSON::Type::Number)
-                return false;
-
-            auto receivedNumberPtr = static_cast<double*>(value->at("blah")->getValue());
-
-            return *receivedNumberPtr == 5;
+            return json == Test::createJSON<JSON::ObjectNode>(map);
         }});
 
         tests.add({ "correctly parses {\"amount\": 3}", [](){
             std::stringstream sstream(R"({"amount": 3})");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
 
-            auto json = parser.parse(sstream);
-            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
-            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
-            if (value->size() != 1)
-                return false;
+            JSON::ObjectStorageType map;
+            map.emplace("amount", std::make_unique<JSON::NumberNode>(3));
 
-            if (value->at("amount")->getType() != JSON::Type::Number)
-                return false;
-
-            auto receivedNumberPtr = static_cast<double*>(value->at("amount")->getValue());
-
-            return *receivedNumberPtr == 3;
+            return json == Test::createJSON<JSON::ObjectNode>(map);
         }});
 
         tests.add({ "correctly parses {\"\": 3}", [](){
             std::stringstream sstream(R"({"": 3})");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
 
-            auto json = parser.parse(sstream);
-            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
-            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
-            if (value->size() != 1)
-                return false;
+            JSON::ObjectStorageType map;
+            map.emplace("", std::make_unique<JSON::NumberNode>(3));
 
-            if (value->at("")->getType() != JSON::Type::Number)
-                return false;
-
-            auto receivedNumberPtr = static_cast<double*>(value->at("")->getValue());
-
-            return *receivedNumberPtr == 3;
+            return json == Test::createJSON<JSON::ObjectNode>(map);
         }});
 
         tests.add({ "correctly parses {\"name\": \"Big Steve\"}", [](){
             std::stringstream sstream(R"({"name": "Big Steve"})");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
 
-            auto json = parser.parse(sstream);
-            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
-            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
-            if (value->size() != 1)
-                return false;
+            JSON::ObjectStorageType map;
+            map.emplace("name", std::make_unique<JSON::StringNode>("Big Steve"));
 
-            if (value->at("name")->getType() != JSON::Type::String)
-                return false;
-
-            auto receivedNumberPtr = static_cast<std::string*>(value->at("name")->getValue());
-
-            return *receivedNumberPtr == "Big Steve";
+            return json == Test::createJSON<JSON::ObjectNode>(map);
         }});
 
         tests.add({ "correctly parses {\"name\": \"\"}", [](){
             std::stringstream sstream(R"({"name": ""})");
-            auto parser = JSON::Parser();
+            auto json = JSON::Parser().parse(sstream);
 
-            auto json = parser.parse(sstream);
-            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
-            auto value = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
-            if (value->size() != 1)
-                return false;
+            JSON::ObjectStorageType map;
+            map.emplace("name", std::make_unique<JSON::StringNode>(""));
 
-            if (value->at("name")->getType() != JSON::Type::String)
-                return false;
-
-            auto receivedNumberPtr = static_cast<std::string*>(value->at("name")->getValue());
-            if (*receivedNumberPtr != "")
-                return false;
-
-            return true;
+            return json == Test::createJSON<JSON::ObjectNode>(map);
         }});
 
         tests.add({ "correctly parses {\"numbos\": [1, 2, 3]}", [](){
             std::stringstream sstream(R"({"numbos": [1, 2, 3]})");
-            auto parser = JSON::Parser();
-
             auto json = JSON::Parser().parse(sstream);
-            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
-            auto received = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
-            if (received->size() != 1)
-                return false;
 
-            if (received->at("numbos")->getType() != JSON::Type::Array)
-                return false;
+            JSON::ArrayStorageType numbos;
+            numbos.push_back(std::make_unique<JSON::NumberNode>(1));
+            numbos.push_back(std::make_unique<JSON::NumberNode>(2));
+            numbos.push_back(std::make_unique<JSON::NumberNode>(3));
 
-            auto receivedArrayPtr = static_cast<JSON::ArrayStorageType*>(received->at("numbos")->getValue());
+            JSON::ObjectStorageType map;
+            map.emplace("numbos", std::make_unique<JSON::ArrayNode>(std::move(numbos)));
 
-            if (receivedArrayPtr->size() != 3)
-                return false;
-            
-            auto num1Ptr = static_cast<double*>(receivedArrayPtr->at(0)->getValue());
-            if (receivedArrayPtr->at(0)->getType() != JSON::Type::Number || *num1Ptr != 1) {
-                return false;
-            }
-
-            auto num2Ptr = static_cast<double*>(receivedArrayPtr->at(1)->getValue());
-            if (receivedArrayPtr->at(1)->getType() != JSON::Type::Number || *num2Ptr != 2) {
-                return false;
-            }
-
-            auto num3Ptr = static_cast<double*>(receivedArrayPtr->at(2)->getValue());
-            if (receivedArrayPtr->at(2)->getType() != JSON::Type::Number || *num3Ptr != 3) {
-                return false;
-            }
-
-            return true;
+            return json == Test::createJSON<JSON::ObjectNode>(map);
         }});
 
         tests.add({ "correctly parses {\"amount\": 3, \"category\": 2}", [](){
             std::stringstream sstream(R"({"amount": 3, "category": 2})");
-            auto parser = JSON::Parser();
-            auto json = parser.parse(sstream);
+            auto json = JSON::Parser().parse(sstream);
 
-            auto objectNode = static_cast<JSON::ObjectNode*>(json.get());
-            auto received = static_cast<JSON::ObjectStorageType*>(objectNode->getValue());
-            if (received->size() != 2)
-                return false;
+            JSON::ObjectStorageType map;
+            map.emplace("amount", std::make_unique<JSON::NumberNode>(3));
+            map.emplace("category", std::make_unique<JSON::NumberNode>(2));
 
-            if (received->at("amount")->getType() != JSON::Type::Number)
-                return false;
-
-            if (received->at("category")->getType() != JSON::Type::Number)
-                return false;
-
-            auto receivedNumberPtr = static_cast<double*>(received->at("amount")->getValue());
-            if (*receivedNumberPtr != 3)
-                return false;
-
-            receivedNumberPtr = static_cast<double*>(received->at("category")->getValue());
-            if (*receivedNumberPtr != 2)
-                return false;
-
-            return true;
+            return json == Test::createJSON<JSON::ObjectNode>(map);
         }});
 
         tests.add({ "throws on {\"amount\": 3, \"category\": 2", [](){
             std::stringstream sstream(R"({"amount": 3, "category": 2)");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("malformed JSON"))
@@ -345,10 +241,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {\"amount: 3}", [](){
             std::stringstream sstream("{\"amount: 3}");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("string never terminates: \"amount: 3}")) {
@@ -362,10 +257,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {\"amount\": }", [](){
             std::stringstream sstream("{\"amount\": }");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("unexpected '}' encountered")) {
@@ -379,10 +273,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {: 3}", [](){
             std::stringstream sstream("{: 3}");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("expected key, got ':'")) {
@@ -396,10 +289,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {\"thing\": 2, : 3}", [](){
             std::stringstream sstream("{\"thing\": 2, : 3}");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("expected key, got ':'")) {
@@ -413,10 +305,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {\"thing\": 2, 3}", [](){
             std::stringstream sstream("{\"thing\": 2, 3}");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("unexpected '3' when key was expected")) {
@@ -430,10 +321,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {{}}", [](){
             std::stringstream sstream("{{}}");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("null key encountered while collapsing Object")) {
@@ -462,10 +352,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {amount\": 3}", [](){
             std::stringstream sstream("{amount\": 3}");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("unexpected 'a' when key was expected")) {
@@ -479,10 +368,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {\"amount\": 3,}", [](){
             std::stringstream sstream("{\"amount\": 3,}");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("unexpected '}' encountered")) {
@@ -496,10 +384,9 @@ namespace ParserTests {
 
         tests.add({ "throws on \"amount\": 3, \"category\": 2}", [](){
             std::stringstream sstream(R"("amount": 3, "category": 2})");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("':' encountered outside of object"))
@@ -511,10 +398,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {\"amount\": , \"category\": 2}", [](){
             std::stringstream sstream(R"({"amount": , "category": 2})");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("unexpected ',' encountered")) {
@@ -528,10 +414,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {\"amount\":: 7, \"category\": 2}", [](){
             std::stringstream sstream(R"({"amount":: 7, "category": 2})");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("double colon '::' encountered")) {
@@ -545,10 +430,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {\"amount\": 7,, \"category\": 2}", [](){
             std::stringstream sstream(R"({"amount": 7,, "category": 2})");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("double comma ',,' encountered")) {
@@ -562,10 +446,9 @@ namespace ParserTests {
 
         tests.add({ "throws on {\"amount\": 3 \"category\": 2}", [](){
             std::stringstream sstream(R"({"amount": 3 "category": 2})");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& error) {
                 if (error.what() != std::string("unexpected double-quote (\")"))
@@ -579,30 +462,20 @@ namespace ParserTests {
 
         tests.add({ "correctly parses [9]", [](){
             std::stringstream sstream("[9]");
-            auto parser = JSON::Parser();
 
-            auto json = parser.parse(sstream);
-            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
-            auto value = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
-            if (value->size() != 1)
-                return false;
+            auto json = JSON::Parser().parse(sstream);
 
-            if (value->front()->getType() != JSON::Type::Number)
-                return false;
+            JSON::ArrayStorageType vector;
+            vector.push_back(std::make_unique<JSON::NumberNode>(9));
 
-            auto receivedNumberPtr = static_cast<double*>(value->front()->getValue());
-            if (*receivedNumberPtr != 9)
-                return false;
-
-            return true;
+            return json == Test::createJSON<JSON::ArrayNode>(vector);
         }});
 
         tests.add({ "throws on 9]", [](){
             std::stringstream sstream("9]");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& e) {
                 if (e.what() != std::string("unexpected ']' encountered"))
@@ -614,10 +487,9 @@ namespace ParserTests {
 
         tests.add({ "throws on [9", [](){
             std::stringstream sstream("[9");
-            auto parser = JSON::Parser();
 
             try {
-                parser.parse(sstream);
+                JSON::Parser().parse(sstream);
                 return false; // should have thrown
             } catch(std::runtime_error& e) {
                 if (e.what() != std::string("malformed JSON")) {
@@ -630,117 +502,75 @@ namespace ParserTests {
 
         tests.add({ "correctly parses [9, 10]", [](){
             std::stringstream sstream("[9, 10]");
-            auto parser = JSON::Parser();
 
-            auto json = parser.parse(sstream);
-            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
-            auto value = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
-            if (value->size() != 2)
-                return false;
+            auto json = JSON::Parser().parse(sstream);
 
-            if (value->front()->getType() != JSON::Type::Number)
-                return false;
+            JSON::ArrayStorageType vector;
+            vector.push_back(std::make_unique<JSON::NumberNode>(9));
+            vector.push_back(std::make_unique<JSON::NumberNode>(10));
 
-            auto receivedNumberPtr = static_cast<double*>(value->front()->getValue());
-            if (*receivedNumberPtr != 9)
-                return false;
-
-            if (value->back()->getType() != JSON::Type::Number)
-                return false;
-
-            receivedNumberPtr = static_cast<double*>(value->back()->getValue());
-            if (*receivedNumberPtr != 10)
-                return false;
-
-            return true;
+            return json == Test::createJSON<JSON::ArrayNode>(vector);
         }});
 
         tests.add({ "correctly parses [9, {\"otherNumber\": 10}]", [](){
             std::stringstream sstream(R"([9, {"otherNumber": 10}])");
-            auto parser = JSON::Parser();
 
-            auto json = parser.parse(sstream);
-            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
-            auto received = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
-            if (received->size() != 2)
-                return false;
+            auto json = JSON::Parser().parse(sstream);
 
-            auto firstElement = static_cast<double*>(received->front()->getValue());
-            if (*firstElement != 9)
-                return false;
-            
-            auto secondElement = static_cast<JSON::ObjectStorageType*>(received->back()->getValue());
-            auto secondElementMapValuePtr = static_cast<double*>(secondElement->at("otherNumber")->getValue());
-            if (*secondElementMapValuePtr != 10)
-                return false;
+            JSON::ObjectStorageType map;
+            map.emplace("otherNumber", std::make_unique<JSON::NumberNode>(10));
 
-            return true;
+            JSON::ArrayStorageType vector;
+            vector.push_back(std::make_unique<JSON::NumberNode>(9));
+            vector.push_back(std::make_unique<JSON::ObjectNode>(std::move(map)));
+
+            return json == Test::createJSON<JSON::ArrayNode>(vector);
         }});
 
         tests.add({ "correctly parses [{}, {}. {}]", [](){
             std::stringstream sstream(R"([{}, {}, {}])");
-            auto parser = JSON::Parser();
 
-            auto json = parser.parse(sstream);
-            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
-            auto received = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
-            if (received->size() != 3)
-                return false;
+            auto json = JSON::Parser().parse(sstream);
 
-            std::all_of(received->begin(), received->end(), [](std::unique_ptr<JSON::ValueNodeBase>& v){
-                if (v->getType() == JSON::Type::Object)
-                    return false;
+            JSON::ArrayStorageType vector;
+            vector.push_back(std::make_unique<JSON::ObjectNode>());
+            vector.push_back(std::make_unique<JSON::ObjectNode>());
+            vector.push_back(std::make_unique<JSON::ObjectNode>());
 
-                return static_cast<JSON::ObjectStorageType*>(v->getValue())->empty();
-            });
-
-            return true;
+            return json == Test::createJSON<JSON::ArrayNode>(vector);
         }});
 
         tests.add({ "correctly parses [[], []. []]", [](){
             std::stringstream sstream(R"([[], [], []])");
-            auto parser = JSON::Parser();
 
-            auto json = parser.parse(sstream);
-            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
-            auto received = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
-            if (received->size() != 3)
-                return false;
+            auto json = JSON::Parser().parse(sstream);
 
-            std::all_of(received->begin(), received->end(), [](std::unique_ptr<JSON::ValueNodeBase>& v){
-                if (v->getType() == JSON::Type::Array)
-                    return false;
+            JSON::ArrayStorageType vector;
+            vector.push_back(std::make_unique<JSON::ArrayNode>());
+            vector.push_back(std::make_unique<JSON::ArrayNode>());
+            vector.push_back(std::make_unique<JSON::ArrayNode>());
 
-                return static_cast<JSON::ArrayStorageType*>(v->getValue())->empty();
-            });
-
-            return true;
+            return json == Test::createJSON<JSON::ArrayNode>(vector);
         }});
 
         tests.add({ "correctly parses [[[]]]", [](){
             std::stringstream sstream(R"([[[]]])");
-            auto parser = JSON::Parser();
 
-            auto json = parser.parse(sstream);
-            auto arrayNode = static_cast<JSON::ArrayNode*>(json.get());
-            auto received = static_cast<JSON::ArrayStorageType*>(arrayNode->getValue());
-            if (received->size() != 1)
-                return false;
+            auto json = JSON::Parser().parse(sstream);
 
-            auto nested1 = static_cast<JSON::ArrayStorageType*>(received->front()->getValue());
-            if (nested1->size() != 1)
-                return false;
+            JSON::ArrayStorageType secondVector;
+            secondVector.push_back(std::make_unique<JSON::ArrayNode>());
 
-            auto nested2 = static_cast<JSON::ArrayStorageType*>(nested1->front()->getValue());
-            if (nested2->size() != 0)
-                return false;
+            JSON::ArrayStorageType outerVector;
+            outerVector.push_back(std::make_unique<JSON::ArrayNode>(std::move(secondVector)));
 
-            return true;
+            return json == Test::createJSON<JSON::ArrayNode>(outerVector);
         }});
 
         tests.add({"throws on [, 3]", [](){
+            std::stringstream ss("[, 3]");
+
             try {
-                auto ss = std::stringstream("[, 3]");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -753,8 +583,9 @@ namespace ParserTests {
         }});
 
         tests.add({"throws on [1, 2],", [](){
+            std::stringstream ss("[1, 2],");
+
             try {
-                auto ss = std::stringstream("[1, 2],");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -767,8 +598,9 @@ namespace ParserTests {
         }});
 
         tests.add({"throws on [3, ]", [](){
+            std::stringstream ss("[3, ]");
+
             try {
-                auto ss = std::stringstream("[3, ]");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -782,8 +614,9 @@ namespace ParserTests {
 
         tests.add({"JSON::Parser::parse(): Junk Values"});
         tests.add({"throws on 'Why, hello! I am junk. Nice to meet you!'", [](){
+            std::stringstream ss("Why, hello! I am junk. Nice to meet you!");
+
             try {
-                auto ss = std::stringstream("Why, hello! I am junk. Nice to meet you!");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -796,8 +629,9 @@ namespace ParserTests {
         }});
 
         tests.add({"throws on 'falsy'", [](){
+            std::stringstream ss("falsy");
+
             try {
-                auto ss = std::stringstream("falsy");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -810,8 +644,9 @@ namespace ParserTests {
         }});
 
         tests.add({"throws on 'fal3se'", [](){
+            std::stringstream ss("fal3se");
+
             try {
-                auto ss = std::stringstream("fal3se");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -824,8 +659,9 @@ namespace ParserTests {
         }});
 
         tests.add({"throws on '13true'", [](){
+            std::stringstream ss("13true");
+
             try {
-                auto ss = std::stringstream("13true");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -838,8 +674,9 @@ namespace ParserTests {
         }});
 
         tests.add({"throws on 'true13'", [](){
+            std::stringstream ss("true13");
+
             try {
-                auto ss = std::stringstream("true13");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -852,8 +689,9 @@ namespace ParserTests {
         }});
 
         tests.add({"throws on 'nu ll'", [](){
+            std::stringstream ss("nu ll");
+
             try {
-                auto ss = std::stringstream("nu ll");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -867,8 +705,9 @@ namespace ParserTests {
 
 
         tests.add({"throws on 'fa lse'", [](){
+            std::stringstream ss("fa lse");
+
             try {
-                auto ss = std::stringstream("fa lse");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {
@@ -881,8 +720,9 @@ namespace ParserTests {
         }});
 
         tests.add({"throws on '1true3'", [](){
+            std::stringstream ss("1true3");
+
             try {
-                auto ss = std::stringstream("1true3");
                 JSON::Parser().parse(ss);
                 return false; // should have thrown
             } catch (std::runtime_error& error) {

@@ -21,6 +21,8 @@ namespace JSON {
 
     public:
         ObjectNode() : type(Type::Object), value(std::make_unique<ObjectStorageType>()) {}
+        ObjectNode(ObjectStorageType&& map) :
+            type(Type::Object), value(std::make_unique<ObjectStorageType>(std::move(map))) {};
 
         bool operator==(const ValueNodeBase& other) const override;
         bool operator!=(const ValueNodeBase& other) const override;
