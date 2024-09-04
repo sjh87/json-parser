@@ -52,7 +52,7 @@ namespace JSON {
     bool ObjectNode::operator!=(const ValueNodeBase& other) const {
         if (other.getType() != Type::Object)
             return true;
-        
+
         auto otherUmap = static_cast<ObjectStorageType*>(other.getValue());
         if (value->size() != otherUmap->size())
             return true;
