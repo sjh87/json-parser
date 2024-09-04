@@ -364,7 +364,7 @@ namespace JSON {
             default:
                 if (!std::isspace(byte)) // locale-specific, I have read ¯\_(ツ)_/¯
                     throw std::runtime_error("'" + std::string(1, byte) + "'" + " is invalid in JSON");
-                
+
                 if (!parsingBuffer.empty())
                     parsingBuffer.push_back(byte);
             }
