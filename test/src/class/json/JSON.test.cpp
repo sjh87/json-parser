@@ -43,29 +43,29 @@ namespace JSONTests {
         }});
 
         tests.add({ "JSON::JSON(3) == JSON::JSON(3) is true", [](){
-            const auto json1 = JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(3)));
-            const auto json2 = JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(3)));
+            const auto json1 = JSON::JSON(std::make_unique<JSON::NumberNode>(3));
+            const auto json2 = JSON::JSON(std::make_unique<JSON::NumberNode>(3));
 
             return json1 == json2;
         }});
 
         tests.add({ "JSON::JSON(3) == JSON::JSON(4) is false", [](){
-            const auto json1 = JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(3)));
-            const auto json2 = JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(4)));
+            const auto json1 = JSON::JSON(std::make_unique<JSON::NumberNode>(3));
+            const auto json2 = JSON::JSON(std::make_unique<JSON::NumberNode>(4));
 
             return !(json1 == json2);
         }});
 
         tests.add({ "JSON::JSON(3) != JSON::JSON(4) is true", [](){
-            const auto json1 = JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(3)));
-            const auto json2 = JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(4)));
+            const auto json1 = JSON::JSON(std::make_unique<JSON::NumberNode>(3));
+            const auto json2 = JSON::JSON(std::make_unique<JSON::NumberNode>(4));
 
             return json1 != json2;
         }});
 
         tests.add({ "JSON::JSON(3) != JSON::JSON(3) is false", [](){
-            const auto json1 = JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(3)));
-            const auto json2 = JSON::JSON(std::move(std::make_unique<JSON::NumberNode>(3)));
+            const auto json1 = JSON::JSON(std::make_unique<JSON::NumberNode>(3));
+            const auto json2 = JSON::JSON(std::make_unique<JSON::NumberNode>(3));
 
             return !(json1 != json2);
         }});
