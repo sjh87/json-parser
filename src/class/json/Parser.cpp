@@ -182,7 +182,7 @@ namespace JSON {
                     node = std::make_unique<ArrayNode>();
                     if (stack.empty()) {
                         stack.push(StackElement{
-                            std::move(std::unique_ptr<std::string>(nullptr)),
+                            std::unique_ptr<std::string>(nullptr),
                             std::move(node),
                             true
                     });
@@ -192,13 +192,13 @@ namespace JSON {
                         justSawColon = false;
                     } else if (!stack.top().key) {
                         stack.push(StackElement{
-                            std::move(std::unique_ptr<std::string>(nullptr)),
+                            std::unique_ptr<std::string>(nullptr),
                             std::move(node),
                             true
                         });
                     } else if (stack.top().isOpenArray()) {
                         stack.push(StackElement{
-                            std::move(std::unique_ptr<std::string>(nullptr)),
+                            std::unique_ptr<std::string>(nullptr),
                             std::move(node),
                             true
                         });
@@ -220,7 +220,7 @@ namespace JSON {
                     && (stack.top().isOpenArray() || !stack.top().key)) {
                     auto ptr = parsePrimitive(parsingBuffer);
                     stack.push(StackElement{
-                        std::move(std::unique_ptr<std::string>(nullptr)),
+                        std::unique_ptr<std::string>(nullptr),
                         std::move(ptr)
                     });
 
@@ -237,7 +237,7 @@ namespace JSON {
                     node = std::make_unique<ObjectNode>();
                     if (stack.empty() || !stack.top().key || stack.top().isOpenArray()) {
                         stack.push(StackElement{
-                            std::move(std::unique_ptr<std::string>(nullptr)),
+                            std::unique_ptr<std::string>(nullptr),
                             std::move(node),
                             true
                         });
@@ -352,7 +352,7 @@ namespace JSON {
                         auto key = std::make_unique<std::string>(std::move(parsingBuffer));
                         stack.push(StackElement{
                             std::move(key),
-                            std::move(std::unique_ptr<ValueNodeBase>{})
+                            std::unique_ptr<ValueNodeBase>()
                         });
                         parsingBuffer.clear();
                     }
