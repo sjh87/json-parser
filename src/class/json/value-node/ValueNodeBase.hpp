@@ -36,6 +36,16 @@ namespace JSON {
             return value;
         };
     };
+
+    template<class C>
+    bool castAndCompare(const ValueNodeBase* v1, const ValueNodeBase* v2) {
+        if (!v1)
+            throw std::runtime_error("v1 in JSON::castAndCompare is nullptr");
+        else if (!v2)
+            throw std::runtime_error("v2 in JSON::castAndCompare is nullptr");
+
+        return *(dynamic_cast<const C*>(v1)) == *(dynamic_cast<const C*>(v2));
+    }
 }
 
 #endif // VALUE_NODE_BASE_H

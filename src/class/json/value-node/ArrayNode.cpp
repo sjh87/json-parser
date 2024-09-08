@@ -7,24 +7,19 @@ namespace JSON {
 
         switch(v1->getType()) {
             case Type::Array:
-                return *(dynamic_cast<ArrayNode*>(v1.get())) ==
-                    *(dynamic_cast<ArrayNode*>(v2.get()));
+                return castAndCompare<ArrayNode>(v1.get(), v2.get());
             case Type::Boolean:
-                return *(dynamic_cast<BooleanNode*>(v1.get())) ==
-                    *(dynamic_cast<BooleanNode*>(v2.get()));
+                return castAndCompare<BooleanNode>(v1.get(), v2.get());
             case Type::Null:
                 return true;
             case Type::Number:
-                return *(dynamic_cast<NumberNode*>(v1.get())) ==
-                    *(dynamic_cast<NumberNode*>(v2.get()));
+                return castAndCompare<NumberNode>(v1.get(), v2.get());
             case Type::Object:
-                return *(dynamic_cast<ObjectNode*>(v1.get())) ==
-                    *(dynamic_cast<ObjectNode*>(v2.get()));
+                return castAndCompare<ObjectNode>(v1.get(), v2.get());
             case Type::String:
-                return *(dynamic_cast<StringNode*>(v1.get())) ==
-                    *(dynamic_cast<StringNode*>(v2.get()));
+                return castAndCompare<StringNode>(v1.get(), v2.get());;
             default:
-                return false;
+                throw std::runtime_error("ArrayNode::isEqual cannot compare Empty values");
         }
     };
 
@@ -42,14 +37,6 @@ namespace JSON {
     }
 
     bool ArrayNode::operator!=(const ValueNodeBase& other) const {
-        if (other.getType() == Type::Array) {
-            auto otherVector = static_cast<ArrayStorageType*>(other.getValue());
-            if (value->size() != otherVector->size())
-                return true;
-
-            return !std::equal(value->begin(), value->end(), otherVector->begin(), isEqual);
-        }
-
-        return true;
+        return !(*this == other);
     }
 }
