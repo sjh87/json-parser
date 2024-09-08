@@ -17,8 +17,8 @@ namespace ArrayNodeTests {
         tests.add({ "ArrayNode::getValue() returns a pointer to an empty vector after initialization", [](){
             auto instance = JSON::ArrayNode();
             auto ptr = instance.getValue();
-            auto vectorPtr = static_cast<std::vector<std::unique_ptr<JSON::ValueNodeBase>>*>(ptr);
-            if (*vectorPtr != std::vector<std::unique_ptr<JSON::ValueNodeBase>>()) {
+            auto vectorPtr = static_cast<JSON::ArrayStorageType*>(ptr);
+            if (*vectorPtr != JSON::ArrayStorageType()) {
                 return false;
             }
 

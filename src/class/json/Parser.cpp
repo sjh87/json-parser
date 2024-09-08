@@ -62,7 +62,7 @@ namespace JSON {
             throw std::runtime_error("did not find beginning of container when collapsing");
         
         if (type == Type::Object) {
-            auto objectPtr = static_cast<ObjectNode*>(stack.top().value.get());
+            auto objectPtr = dynamic_cast<ObjectNode*>(stack.top().value.get());
 
             while (!temp.empty()) {
                 auto tempTop = std::move(temp.top());
@@ -74,7 +74,7 @@ namespace JSON {
                 temp.pop();
             }
         } else {
-            auto arrayPtr = static_cast<ArrayNode*>(stack.top().value.get());
+            auto arrayPtr = dynamic_cast<ArrayNode*>(stack.top().value.get());
 
             while (!temp.empty()) {
                 auto tempTop = std::move(temp.top());

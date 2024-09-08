@@ -2,6 +2,7 @@
 
 namespace JSON {
     using MapPairType = std::pair<const std::string, std::unique_ptr<ValueNodeBase>>;
+
     static std::function<bool(const MapPairType&)> isEqual(ObjectStorageType* other) {
         return [other](const MapPairType& pair) {
             const std::string& key = pair.first;
@@ -12,24 +13,19 @@ namespace JSON {
                 if (other->at(key)->getType() == pair.second->getType()) {
                     switch(type) {
                         case Type::Array:
-                            return *(static_cast<ArrayNode*>(value)) ==
-                                *(static_cast<ArrayNode*>(other->at(key).get()));
+                            return castAndCompare<ArrayNode>(value, other->at(key).get());
                         case Type::Boolean:
-                            return *(static_cast<BooleanNode*>(value)) ==
-                                *(static_cast<BooleanNode*>(other->at(key).get()));
+                            return castAndCompare<BooleanNode>(value, other->at(key).get());
                         case Type::Null:
                             return true;
                         case Type::Number:
-                            return *(static_cast<NumberNode*>(value)) ==
-                                *(static_cast<NumberNode*>(other->at(key).get()));
+                            return castAndCompare<NumberNode>(value, other->at(key).get());
                         case Type::Object:
-                            return *(static_cast<ObjectNode*>(value)) ==
-                                *(static_cast<ObjectNode*>(other->at(key).get()));
+                            return castAndCompare<ObjectNode>(value, other->at(key).get());
                         case Type::String:
-                            return *(static_cast<StringNode*>(value)) ==
-                                *(static_cast<StringNode*>(other->at(key).get()));
+                            return castAndCompare<StringNode>(value, other->at(key).get());
                         default:
-                            return false;
+                            throw std::runtime_error("ObjectNode::isEqual cannot compare Empty values");
                     }
                 }
             }
@@ -50,13 +46,6 @@ namespace JSON {
     }
 
     bool ObjectNode::operator!=(const ValueNodeBase& other) const {
-        if (other.getType() != Type::Object)
-            return true;
-
-        auto otherUmap = static_cast<ObjectStorageType*>(other.getValue());
-        if (value->size() != otherUmap->size())
-            return true;
-
-        return !std::all_of(value->begin(), value->end(), isEqual(otherUmap));
+        return !(*this == other);
     }
 }

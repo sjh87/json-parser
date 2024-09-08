@@ -31,7 +31,7 @@ namespace JSONTests {
             auto numberNodePtr = std::make_unique<JSON::NumberNode>(numbo);
             auto json = JSON::JSON(std::move(numberNodePtr));
 
-            auto ptr = static_cast<JSON::NumberNode*>(json.get());
+            auto ptr = dynamic_cast<JSON::NumberNode*>(json.get());
             if (!ptr)
                 return false;
             
