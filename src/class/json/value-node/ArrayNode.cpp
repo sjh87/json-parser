@@ -7,22 +7,22 @@ namespace JSON {
 
         switch(v1->getType()) {
             case Type::Array:
-                return *(static_cast<ArrayNode*>(v1.get())) ==
-                    *(static_cast<ArrayNode*>(v2.get()));
+                return *(dynamic_cast<ArrayNode*>(v1.get())) ==
+                    *(dynamic_cast<ArrayNode*>(v2.get()));
             case Type::Boolean:
-                return *(static_cast<BooleanNode*>(v1.get())) ==
-                    *(static_cast<BooleanNode*>(v2.get()));
+                return *(dynamic_cast<BooleanNode*>(v1.get())) ==
+                    *(dynamic_cast<BooleanNode*>(v2.get()));
             case Type::Null:
                 return true;
             case Type::Number:
-                return *(static_cast<NumberNode*>(v1.get())) ==
-                    *(static_cast<NumberNode*>(v2.get()));
+                return *(dynamic_cast<NumberNode*>(v1.get())) ==
+                    *(dynamic_cast<NumberNode*>(v2.get()));
             case Type::Object:
-                return *(static_cast<ObjectNode*>(v1.get())) ==
-                    *(static_cast<ObjectNode*>(v2.get()));
+                return *(dynamic_cast<ObjectNode*>(v1.get())) ==
+                    *(dynamic_cast<ObjectNode*>(v2.get()));
             case Type::String:
-                return *(static_cast<StringNode*>(v1.get())) ==
-                    *(static_cast<StringNode*>(v2.get()));
+                return *(dynamic_cast<StringNode*>(v1.get())) ==
+                    *(dynamic_cast<StringNode*>(v2.get()));
             default:
                 return false;
         }

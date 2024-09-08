@@ -12,22 +12,22 @@ namespace JSON {
                 if (other->at(key)->getType() == pair.second->getType()) {
                     switch(type) {
                         case Type::Array:
-                            return *(static_cast<ArrayNode*>(value)) ==
-                                *(static_cast<ArrayNode*>(other->at(key).get()));
+                            return *(dynamic_cast<ArrayNode*>(value)) ==
+                                *(dynamic_cast<ArrayNode*>(other->at(key).get()));
                         case Type::Boolean:
-                            return *(static_cast<BooleanNode*>(value)) ==
-                                *(static_cast<BooleanNode*>(other->at(key).get()));
+                            return *(dynamic_cast<BooleanNode*>(value)) ==
+                                *(dynamic_cast<BooleanNode*>(other->at(key).get()));
                         case Type::Null:
                             return true;
                         case Type::Number:
-                            return *(static_cast<NumberNode*>(value)) ==
-                                *(static_cast<NumberNode*>(other->at(key).get()));
+                            return *(dynamic_cast<NumberNode*>(value)) ==
+                                *(dynamic_cast<NumberNode*>(other->at(key).get()));
                         case Type::Object:
-                            return *(static_cast<ObjectNode*>(value)) ==
-                                *(static_cast<ObjectNode*>(other->at(key).get()));
+                            return *(dynamic_cast<ObjectNode*>(value)) ==
+                                *(dynamic_cast<ObjectNode*>(other->at(key).get()));
                         case Type::String:
-                            return *(static_cast<StringNode*>(value)) ==
-                                *(static_cast<StringNode*>(other->at(key).get()));
+                            return *(dynamic_cast<StringNode*>(value)) ==
+                                *(dynamic_cast<StringNode*>(other->at(key).get()));
                         default:
                             return false;
                     }

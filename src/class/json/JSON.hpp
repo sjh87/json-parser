@@ -9,6 +9,9 @@ namespace JSON {
 
     public:
         JSON() = delete;
+
+        JSON(JSON&) = delete;
+
         JSON(std::unique_ptr<ValueNodeBase>&& up) : head(std::move(up)) {}
 
         bool operator==(const JSON&) const;
@@ -18,7 +21,7 @@ namespace JSON {
             return head->getType();
         }
 
-        void* get() const {
+        ValueNodeBase* get() const {
             return head.get();
         }
     };
