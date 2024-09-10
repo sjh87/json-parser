@@ -1,7 +1,7 @@
 #include "Parser.hpp"
 
 namespace JSON {
-    const std::set<char> permittedEscapes{ '"', '\\', 'b', 'f', 'n', 'r', 't' };
+    const std::set<char> permittedEscapes{ '"', '\\', 'b', 'f', 'n', 'r', 't', '/' };
 
     // stole this and tested it pretty thoroughly; guilty till proven innocent,
     // like all regex :-D
@@ -93,7 +93,7 @@ namespace JSON {
     bool Parser::canBeginObjectOrArray() const {
         return stack.empty()
             || (!stack.top().key && stack.top().value)
-            || (expectingValue())
+            || expectingValue()
             || stack.top().isOpenArray()
             || !stack.top().open;
     }
@@ -108,7 +108,8 @@ namespace JSON {
     bool Parser::expectingKey() const {
         return !stack.empty()
             && !stack.top().isOpenArray() // could be a key-value pair with an open Array
-            && (stack.top().isOpenObject() || stack.top().isKeyValuePair());
+            && (stack.top().isOpenObject() || stack.top().isKeyValuePair())
+            && !expectingValue();
     }
 
     bool Parser::expectingValue() const {
@@ -117,8 +118,53 @@ namespace JSON {
             && !stack.top().value;
     }
 
+    static constexpr bool validateUtf8(const char* string) noexcept {
+        while (*string) {
+            if ((*string & 0b10000000)) {
+                if (!(*string & 0b01000000)) return false;
+                if (*string & 0b00100000) {
+                    if (*string & 0b00010000) {
+                        if (*string & 0b00001000)
+                            return false;
+
+                        if ((*++string & 0b11000000) != 0b10000000)
+                            return false;
+                    }
+
+                    if ((*++string & 0b11000000) != 0b10000000)
+                        return false;
+                }
+
+                if ((*++string & 0b11000000) != 0b10000000)
+                    return false;
+            }
+
+            ++string;
+        }
+
+        return true;
+    }
+
+    static std::string handleEscapedUnicode(std::istream& stream) {
+        std::string fourBytes;
+        char byte;
+
+        while (stream.good() && fourBytes.size() < 4) {
+            stream.get(byte);
+            fourBytes.push_back(byte);
+        }
+
+        if (fourBytes.size() < 4)
+            throw std::runtime_error("unvalid unicode sequence: \\u" + fourBytes);
+
+        if (validateUtf8(fourBytes.data()))
+            return "\\u" + fourBytes;
+
+        throw std::runtime_error("invalid unicode sequence: \\ud" + fourBytes);
+    }
+
     JSON Parser::parse(std::istream& stream) {
-        char byte; // TODO figure out UTF-8 parsing, validation
+        char byte;
         bool justSawColon{ false };
         bool justSawComma{ false };
         std::string parsingBuffer;
@@ -151,7 +197,6 @@ namespace JSON {
                     throw std::runtime_error("double comma ',,' encountered");
 
                 if (stack.empty()
-                    || expectingKey()
                     || ((stack.top().isOpenArray()
                     || expectingValue()) && parsingBuffer.empty())
                     || (stack.size() == 1 && !stack.top().open)
@@ -318,13 +363,22 @@ namespace JSON {
                     throw std::runtime_error("unexpected double-quote (\")");
 
                 parsingBuffer.push_back('"');
+                justSawComma = false;
                 while (stream.get(byte)) {
                     if (byte == '\\') {
                         if (stream.get(byte)) {
-                            if (permittedEscapes.find(byte) == permittedEscapes.end()) {
+                            if (byte == 'u') {
+                                parsingBuffer += handleEscapedUnicode(stream);
+                                continue;
+                                if (stream.eof())
+                                    break;
+                            } else if (permittedEscapes.find(byte) == permittedEscapes.end()) {
                                 throw std::runtime_error("naughty escape sequence: \\" + std::string(1, byte));
                             } else {
-                                parsingBuffer += "\\" + byte;
+                                parsingBuffer.push_back(byte);
+                                continue;
+                                if (stream.eof())
+                                    break;
                             }
                         } else {
                             break;
