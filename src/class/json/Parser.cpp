@@ -100,8 +100,9 @@ namespace JSON {
 
     // top of stack has an open Object or complete key-value pair
     bool Parser::readyForObjectKey() const {
-        return stack.top().isKeyValuePair()
-            || stack.top().isOpenObject();
+        return (stack.top().isKeyValuePair()
+            || stack.top().isOpenObject())
+            && !stack.top().isOpenArray();
     }
 
     bool Parser::expectingKey() const {
@@ -280,6 +281,7 @@ namespace JSON {
 
                 break;
             case '-':
+            case '+':
             case '.':
             case '0':
             case '1':
