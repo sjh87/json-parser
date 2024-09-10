@@ -34,6 +34,7 @@ std::vector<numberTestRow> numberTestrows{
     { "10..0",  0,     SHOULD_THROW },
     { "10.01",  10.01               },
     { "10e12",  10e12               },
+    { "10e+12",  10e+12             },
     { "123.45", 123.45              },
     { "12345",  12345               },
     { "1e",     0,     SHOULD_THROW },
@@ -139,6 +140,21 @@ namespace ParserTests {
         } });
 
         tests.add({ "JSON::Parser::parse(): Object" });
+
+        tests.add({ "correctly parses {\"object with 1 member\":[\"array with 1 element\"]}", [](){
+            std::stringstream sstream(R"({"object with 1 member":["array with 1 element"]})");
+            auto json = JSON::Parser().parse(sstream);
+
+            auto vector = JSON::ArrayStorageType();
+            vector.push_back(std::make_unique<JSON::StringNode>("array with 1 element"));
+
+            JSON::ObjectStorageType map;
+            map.emplace("object with 1 member", std::make_unique<JSON::ArrayNode>(std::move(vector)));
+
+            return json == Test::createJSON<JSON::ObjectNode>(map);
+        }});
+
+
         tests.add({ "correctly parses {\"emptyMsg\": \"\"}", [](){
             std::stringstream sstream(R"({"emptyMsg": ""})");
             auto json = JSON::Parser().parse(sstream);

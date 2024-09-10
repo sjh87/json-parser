@@ -1,7 +1,7 @@
 #include "Parser.hpp"
 
 namespace JSON {
-    const std::set<char> permittedEscapes{ '"', '\\', 'b', 'f', 'n', 'r', 't' };
+    const std::set<char> permittedEscapes{ '"', '\\', 'b', 'f', 'n', 'r', 't', '/' };
 
     // stole this and tested it pretty thoroughly; guilty till proven innocent,
     // like all regex :-D
@@ -93,21 +93,23 @@ namespace JSON {
     bool Parser::canBeginObjectOrArray() const {
         return stack.empty()
             || (!stack.top().key && stack.top().value)
-            || (expectingValue())
+            || expectingValue()
             || stack.top().isOpenArray()
             || !stack.top().open;
     }
 
     // top of stack has an open Object or complete key-value pair
     bool Parser::readyForObjectKey() const {
-        return stack.top().isKeyValuePair()
-            || stack.top().isOpenObject();
+        return (stack.top().isKeyValuePair()
+            || stack.top().isOpenObject())
+            && !stack.top().isOpenArray();
     }
 
     bool Parser::expectingKey() const {
         return !stack.empty()
             && !stack.top().isOpenArray() // could be a key-value pair with an open Array
-            && (stack.top().isOpenObject() || stack.top().isKeyValuePair());
+            && (stack.top().isOpenObject() || stack.top().isKeyValuePair())
+            && !expectingValue();
     }
 
     bool Parser::expectingValue() const {
@@ -116,13 +118,61 @@ namespace JSON {
             && !stack.top().value;
     }
 
+    // stole this and refactored it a little
+    static constexpr bool validateUtf8(const char* string) noexcept {
+        while (*string) {
+            if ((*string & 0b10000000)) {
+                if (!(*string & 0b01000000)) return false;
+                if (*string & 0b00100000) {
+                    if (*string & 0b00010000) {
+                        if (*string & 0b00001000)
+                            return false;
+
+                        if ((*++string & 0b11000000) != 0b10000000)
+                            return false;
+                    }
+
+                    if ((*++string & 0b11000000) != 0b10000000)
+                        return false;
+                }
+
+                if ((*++string & 0b11000000) != 0b10000000)
+                    return false;
+            }
+
+            ++string;
+        }
+
+        return true;
+    }
+
+    // take next four bytes from stream and validate them as a UTF-8 ASCII representation;
+    // throw if invalid, otherwise return them
+    static std::string handleEscapedUnicode(std::istream& stream) {
+        std::string fourBytes;
+        char byte;
+
+        while (stream.good() && fourBytes.size() < 4) {
+            stream.get(byte);
+            fourBytes.push_back(byte);
+        }
+
+        if (fourBytes.size() < 4)
+            throw std::runtime_error("unvalid unicode sequence: \\u" + fourBytes);
+
+        if (validateUtf8(fourBytes.data()))
+            return "\\u" + fourBytes;
+
+        throw std::runtime_error("invalid unicode sequence: \\ud" + fourBytes);
+    }
+
     JSON Parser::parse(std::istream& stream) {
-        char byte; // TODO figure out UTF-8 parsing, validation
         bool justSawColon{ false };
         bool justSawComma{ false };
         std::string parsingBuffer;
         std::unique_ptr<ValueNodeBase> head;
 
+        char byte;
         while (true) {
             stream.get(byte);
 
@@ -140,17 +190,17 @@ namespace JSON {
 
                 break;
             } else if (stream.bad() || stream.fail()) {
-                std::runtime_error("failed to read stream");
+                throw std::runtime_error("failed to read stream");
             }
 
             std::unique_ptr<ValueNodeBase> node;
+
             switch (byte) {
             case ',':
                 if (justSawComma)
                     throw std::runtime_error("double comma ',,' encountered");
 
                 if (stack.empty()
-                    || expectingKey()
                     || ((stack.top().isOpenArray()
                     || expectingValue()) && parsingBuffer.empty())
                     || (stack.size() == 1 && !stack.top().open)
@@ -180,32 +230,21 @@ namespace JSON {
             case '[':
                 if (canBeginObjectOrArray()) {
                     node = std::make_unique<ArrayNode>();
-                    if (stack.empty()) {
+                    if (stack.empty() || !stack.top().key || stack.top().isOpenArray()) {
                         stack.push(StackElement{
                             std::unique_ptr<std::string>(nullptr),
                             std::move(node),
                             true
-                    });
+                        });
                     } else if (stack.top().key && justSawColon) {
                         stack.top().value = std::move(node);
                         stack.top().open = true;
                         justSawColon = false;
-                    } else if (!stack.top().key) {
-                        stack.push(StackElement{
-                            std::unique_ptr<std::string>(nullptr),
-                            std::move(node),
-                            true
-                        });
-                    } else if (stack.top().isOpenArray()) {
-                        stack.push(StackElement{
-                            std::unique_ptr<std::string>(nullptr),
-                            std::move(node),
-                            true
-                        });
                     }
 
                     justSawComma = false;
                 }
+
                 break;
             case ']':
                 if (stack.empty()) {
@@ -218,7 +257,8 @@ namespace JSON {
                 if (!parsingBuffer.empty()
                     && stack.top().value
                     && (stack.top().isOpenArray() || !stack.top().key)) {
-                    auto ptr = parsePrimitive(parsingBuffer);
+                    std::unique_ptr<ValueNodeBase> ptr = parsePrimitive(parsingBuffer);
+
                     stack.push(StackElement{
                         std::unique_ptr<std::string>(nullptr),
                         std::move(ptr)
@@ -231,6 +271,7 @@ namespace JSON {
                 justSawComma = false;
 
                 collapseContainer(Type::Array);
+
                 break;
             case '{':
                 if (canBeginObjectOrArray()) {
@@ -254,17 +295,22 @@ namespace JSON {
 
                 break;
             case '}':
-                if (stack.empty() || justSawColon || ((justSawComma || expectingValue()) && parsingBuffer.empty())) {
+                if (stack.empty()
+                    || justSawColon
+                    || ((justSawComma || expectingValue())
+                    && parsingBuffer.empty())) {
                     throw std::runtime_error("unexpected '}' encountered");
                 }
 
                 if (!parsingBuffer.empty() && expectingValue()) {
-                    auto ptr = parsePrimitive(parsingBuffer);
+                    std::unique_ptr<ValueNodeBase> ptr = parsePrimitive(parsingBuffer);
+
                     stack.top().value = std::move(ptr);
                     parsingBuffer.clear();
                 }
 
                 collapseContainer(Type::Object);
+
                 break;
             case ':':
                 if (justSawColon)
@@ -281,6 +327,7 @@ namespace JSON {
                 break;
             case '-':
             case '.':
+            case '+':
             case '0':
             case '1':
             case '2':
@@ -310,19 +357,32 @@ namespace JSON {
                 parsingBuffer.push_back(byte);
                 justSawColon = false;
                 justSawComma = false;
+
                 break;
             case '"':
                 if (!parsingBuffer.empty())
                     throw std::runtime_error("unexpected double-quote (\")");
 
                 parsingBuffer.push_back('"');
+                justSawComma = false;
+
                 while (stream.get(byte)) {
                     if (byte == '\\') {
                         if (stream.get(byte)) {
-                            if (permittedEscapes.find(byte) == permittedEscapes.end()) {
+                            if (byte == 'u') {
+                                parsingBuffer += handleEscapedUnicode(stream);
+
+                                continue;
+                                if (stream.eof())
+                                    break;
+                            } else if (permittedEscapes.find(byte) == permittedEscapes.end()) {
                                 throw std::runtime_error("naughty escape sequence: \\" + std::string(1, byte));
                             } else {
-                                parsingBuffer += "\\" + byte;
+                                parsingBuffer.push_back(byte);
+
+                                continue;
+                                if (stream.eof())
+                                    break;
                             }
                         } else {
                             break;
@@ -338,6 +398,7 @@ namespace JSON {
                     }
 
                     parsingBuffer.push_back(byte);
+
                     if (byte == '"')
                         break;
                 }
@@ -349,11 +410,14 @@ namespace JSON {
                     if (readyForObjectKey()) {
                         parsingBuffer.erase(parsingBuffer.begin());
                         parsingBuffer.erase(parsingBuffer.end() - 1);
+
                         auto key = std::make_unique<std::string>(std::move(parsingBuffer));
+
                         stack.push(StackElement{
                             std::move(key),
                             std::unique_ptr<ValueNodeBase>()
                         });
+
                         parsingBuffer.clear();
                     }
                 }
@@ -362,7 +426,7 @@ namespace JSON {
 
                 break;
             default:
-                if (!std::isspace(byte)) // locale-specific, I have read ¯\_(ツ)_/¯
+                if (!std::isspace(byte))
                     throw std::runtime_error("'" + std::string(1, byte) + "'" + " is invalid in JSON");
 
                 if (!parsingBuffer.empty())
