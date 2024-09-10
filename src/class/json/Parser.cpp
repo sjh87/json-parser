@@ -194,6 +194,7 @@ namespace JSON {
             }
 
             std::unique_ptr<ValueNodeBase> node;
+
             switch (byte) {
             case ',':
                 if (justSawComma)
@@ -229,32 +230,21 @@ namespace JSON {
             case '[':
                 if (canBeginObjectOrArray()) {
                     node = std::make_unique<ArrayNode>();
-                    if (stack.empty()) {
+                    if (stack.empty() || !stack.top().key || stack.top().isOpenArray()) {
                         stack.push(StackElement{
                             std::unique_ptr<std::string>(nullptr),
                             std::move(node),
                             true
-                    });
+                        });
                     } else if (stack.top().key && justSawColon) {
                         stack.top().value = std::move(node);
                         stack.top().open = true;
                         justSawColon = false;
-                    } else if (!stack.top().key) {
-                        stack.push(StackElement{
-                            std::unique_ptr<std::string>(nullptr),
-                            std::move(node),
-                            true
-                        });
-                    } else if (stack.top().isOpenArray()) {
-                        stack.push(StackElement{
-                            std::unique_ptr<std::string>(nullptr),
-                            std::move(node),
-                            true
-                        });
                     }
 
                     justSawComma = false;
                 }
+
                 break;
             case ']':
                 if (stack.empty()) {
@@ -281,6 +271,7 @@ namespace JSON {
                 justSawComma = false;
 
                 collapseContainer(Type::Array);
+
                 break;
             case '{':
                 if (canBeginObjectOrArray()) {
@@ -304,12 +295,16 @@ namespace JSON {
 
                 break;
             case '}':
-                if (stack.empty() || justSawColon || ((justSawComma || expectingValue()) && parsingBuffer.empty())) {
+                if (stack.empty()
+                    || justSawColon
+                    || ((justSawComma || expectingValue())
+                    && parsingBuffer.empty())) {
                     throw std::runtime_error("unexpected '}' encountered");
                 }
 
                 if (!parsingBuffer.empty() && expectingValue()) {
                     std::unique_ptr<ValueNodeBase> ptr = parsePrimitive(parsingBuffer);
+
                     stack.top().value = std::move(ptr);
                     parsingBuffer.clear();
                 }
@@ -362,6 +357,7 @@ namespace JSON {
                 parsingBuffer.push_back(byte);
                 justSawColon = false;
                 justSawComma = false;
+
                 break;
             case '"':
                 if (!parsingBuffer.empty())
@@ -369,11 +365,13 @@ namespace JSON {
 
                 parsingBuffer.push_back('"');
                 justSawComma = false;
+
                 while (stream.get(byte)) {
                     if (byte == '\\') {
                         if (stream.get(byte)) {
                             if (byte == 'u') {
                                 parsingBuffer += handleEscapedUnicode(stream);
+
                                 continue;
                                 if (stream.eof())
                                     break;
@@ -381,6 +379,7 @@ namespace JSON {
                                 throw std::runtime_error("naughty escape sequence: \\" + std::string(1, byte));
                             } else {
                                 parsingBuffer.push_back(byte);
+
                                 continue;
                                 if (stream.eof())
                                     break;
@@ -399,6 +398,7 @@ namespace JSON {
                     }
 
                     parsingBuffer.push_back(byte);
+
                     if (byte == '"')
                         break;
                 }
@@ -410,7 +410,9 @@ namespace JSON {
                     if (readyForObjectKey()) {
                         parsingBuffer.erase(parsingBuffer.begin());
                         parsingBuffer.erase(parsingBuffer.end() - 1);
+
                         auto key = std::make_unique<std::string>(std::move(parsingBuffer));
+
                         stack.push(StackElement{
                             std::move(key),
                             std::unique_ptr<ValueNodeBase>()
@@ -424,7 +426,7 @@ namespace JSON {
 
                 break;
             default:
-                if (!std::isspace(byte)) // locale-specific, I have read ¯\_(ツ)_/¯
+                if (!std::isspace(byte))
                     throw std::runtime_error("'" + std::string(1, byte) + "'" + " is invalid in JSON");
 
                 if (!parsingBuffer.empty())
