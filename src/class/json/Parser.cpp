@@ -118,6 +118,7 @@ namespace JSON {
             && !stack.top().value;
     }
 
+    // stole this and refactored it a little
     static constexpr bool validateUtf8(const char* string) noexcept {
         while (*string) {
             if ((*string & 0b10000000)) {
@@ -145,6 +146,8 @@ namespace JSON {
         return true;
     }
 
+    // take next four bytes from stream and validate them as a UTF-8 ASCII representation;
+    // throw if invalid, otherwise return them
     static std::string handleEscapedUnicode(std::istream& stream) {
         std::string fourBytes;
         char byte;
@@ -164,12 +167,12 @@ namespace JSON {
     }
 
     JSON Parser::parse(std::istream& stream) {
-        char byte;
         bool justSawColon{ false };
         bool justSawComma{ false };
         std::string parsingBuffer;
         std::unique_ptr<ValueNodeBase> head;
 
+        char byte;
         while (true) {
             stream.get(byte);
 
@@ -187,7 +190,7 @@ namespace JSON {
 
                 break;
             } else if (stream.bad() || stream.fail()) {
-                std::runtime_error("failed to read stream");
+                throw std::runtime_error("failed to read stream");
             }
 
             std::unique_ptr<ValueNodeBase> node;
@@ -264,7 +267,8 @@ namespace JSON {
                 if (!parsingBuffer.empty()
                     && stack.top().value
                     && (stack.top().isOpenArray() || !stack.top().key)) {
-                    auto ptr = parsePrimitive(parsingBuffer);
+                    std::unique_ptr<ValueNodeBase> ptr = parsePrimitive(parsingBuffer);
+
                     stack.push(StackElement{
                         std::unique_ptr<std::string>(nullptr),
                         std::move(ptr)
@@ -305,12 +309,13 @@ namespace JSON {
                 }
 
                 if (!parsingBuffer.empty() && expectingValue()) {
-                    auto ptr = parsePrimitive(parsingBuffer);
+                    std::unique_ptr<ValueNodeBase> ptr = parsePrimitive(parsingBuffer);
                     stack.top().value = std::move(ptr);
                     parsingBuffer.clear();
                 }
 
                 collapseContainer(Type::Object);
+
                 break;
             case ':':
                 if (justSawColon)
@@ -326,8 +331,8 @@ namespace JSON {
 
                 break;
             case '-':
-            case '+':
             case '.':
+            case '+':
             case '0':
             case '1':
             case '2':
@@ -410,6 +415,7 @@ namespace JSON {
                             std::move(key),
                             std::unique_ptr<ValueNodeBase>()
                         });
+
                         parsingBuffer.clear();
                     }
                 }
